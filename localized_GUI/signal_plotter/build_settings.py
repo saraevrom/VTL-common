@@ -1,5 +1,5 @@
-from common_GUI.settings_frame import SettingMenu, DoubleValue, ComboboxValue, CheckboxValue
-from localization import get_locale
+from vtl_common.common_GUI.settings_frame import SettingMenu, DoubleValue, ComboboxValue, CheckboxValue
+from vtl_common.localization import get_locale
 
 def build_menu(menu: SettingMenu):
     menu.add_setting(ComboboxValue, "lightcurve", get_locale("app.popup_plot.lightcurve"),"Off",

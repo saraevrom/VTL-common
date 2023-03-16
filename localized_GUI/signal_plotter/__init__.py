@@ -1,9 +1,9 @@
 import tkinter as tk
 from ..plotter import GridPlotter
 import numpy as np
-from common_GUI.settings_frame import SettingMenu
+from vtl_common.common_GUI.settings_frame import SettingMenu
 from .build_settings import build_menu
-from localization import get_locale
+from vtl_common.localization import get_locale
 
 from .time_plotter import MainPlotter
 

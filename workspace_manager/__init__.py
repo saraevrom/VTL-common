@@ -3,7 +3,7 @@ import os.path as ospath
 import tkinter as tk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
-from localization import get_locale
+from vtl_common.localization import get_locale
 import os
 
 cwd = ospath.abspath(__file__)

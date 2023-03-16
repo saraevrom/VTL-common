@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.filedialog as filedialog
-from localization import get_locale
+from vtl_common.localization import get_locale
 import json
 
 class TkFormControlPanel(tk.Frame):

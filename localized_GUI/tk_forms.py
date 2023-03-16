@@ -1,4 +1,4 @@
-from common_GUI import TkDictForm
+from vtl_common.common_GUI import TkDictForm
 from .controls import TkFormControlPanel
 class SaveableTkDictForm(TkDictForm):
     def __init__(self, master, tk_form_configuration, use_scrollview=True, color_index=0, file_asker=None):
