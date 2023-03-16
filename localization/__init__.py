@@ -30,19 +30,21 @@ def check_localization():
                 if intersect:
                     print("LOCALE warning, duped keys:")
                     for k in intersect:
-                        print(k)
+                        print("\t", k)
                 locale_dict.update(added)
+
 
 def format_locale(key,*args,**kwargs):
     check_localization()
     if key in locale_dict.keys():
-        return locale_dict[key].format(*args,**kwargs)
+        return locale_dict[key].format(*args, **kwargs)
     else:
         if key not in MISSING_LOCALES:
             curframe = inspect.currentframe()
             calframe = inspect.getouterframes(curframe, 2)
             MISSING_LOCALES.append([key, calframe[1][3]])
         return key
+
 
 def get_locale(key):
     check_localization()
