@@ -25,7 +25,13 @@ def check_localization():
             locale_path = ospath.join(cwd, LOCALE + ".json")
             print("LOCALE:", locale_path)
             with open(locale_path, "r") as fp:
-                locale_dict.update(json.load(fp))
+                added = json.load(fp)
+                intersect = set(added.keys()).intersection(set(locale_dict.keys()))
+                if intersect:
+                    print("LOCALE warning, duped keys:")
+                    for k in intersect:
+                        print(k)
+                locale_dict.update(added)
 
 def format_locale(key,*args,**kwargs):
     check_localization()

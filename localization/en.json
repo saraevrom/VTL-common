@@ -1,5 +1,6 @@
 {
-
+  "app.filedialog.save_settings.title": "Save settings",
+  "app.filedialog.load_settings.title": "Load settings",
 
   "app.filedialog_formats.settings_json": "JSON with settings",
   "app.filedialog_formats.ff_json": "JSON with FF parameters",
