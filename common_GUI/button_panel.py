@@ -16,7 +16,6 @@ class ButtonPanel(tk.Frame):
 
     def add_button(self, text, command, row):
         self._allocate_rows(row+1)
-        print(self.command_rows)
         frame, btn_count = self.command_rows[row]
         button = tk.Button(frame, text=text, command=command)
         button.grid(row=0, column=btn_count, sticky="ew")
