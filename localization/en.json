@@ -27,5 +27,18 @@
   "app.popup_plot.lightcurve_mean": "Light curve using mean instead of sum",
   "app.popup_plot.threshold": "Active pixels threshold",
   "app.popup_plot.detect_active": "Select active pixels",
-  "app.popup_plot.show_pixels": "Show pixels"
+  "app.popup_plot.show_pixels": "Show pixels",
+
+  "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
+  "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",
+  "app.parameters.PIXEL_SIZE": "Pixel size [mm]",
+  "app.parameters.HALF_GAP_SIZE": "Gap size [mm]",
+  "app.parameters.HALF_PIXELS": "One PMT pixels count",
+  "app.parameters.PLOT_COLORMAP": "Grid plotter colormap",
+  "app.parameters.PLOT_BROKEN_COLOR": "Grid plotter broken pixel color",
+  "app.parameters.PLOT_HIGHLIGHT_COLOR": "Grid plotter highlighted pixel color",
+  "app.parameters.NPROC": "Parallel computation processes",
+  "app.parameters.LOCALE": "Language",
+  "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Floating point format for grid plotter scale",
+  "app.parameters.DATETIME_FORMAT": "Datetime format"
 }

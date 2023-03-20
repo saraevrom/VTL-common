@@ -26,6 +26,18 @@
   "app.popup_plot.lightcurve_mean": "Кривая свечения использует среднее вместо суммы",
   "app.popup_plot.threshold": "Порог для активных пикселей",
   "app.popup_plot.detect_active": "Выбрать активные пиксели",
-  "app.popup_plot.show_pixels": "Показать пиксели"
+  "app.popup_plot.show_pixels": "Показать пиксели",
 
+  "app.parameters.MAIN_LATITUDE": "Широта обсерватории [°]",
+  "app.parameters.MAIN_LONGITUDE": "Долгота обсерватории [°]",
+  "app.parameters.PIXEL_SIZE": "Размер пикселя [мм]",
+  "app.parameters.HALF_GAP_SIZE": "Размер зазора между ФЭУ [мм]",
+  "app.parameters.HALF_PIXELS": "Количество пикселей в ряду одного ФЭУ",
+  "app.parameters.PLOT_COLORMAP": "Карта цветов для матрицы",
+  "app.parameters.PLOT_BROKEN_COLOR": "Цвет нерабочих пикселей",
+  "app.parameters.PLOT_HIGHLIGHT_COLOR": "Цвет выделенных пикселей",
+  "app.parameters.NPROC": "Количество потоков для параллельной обработки",
+  "app.parameters.LOCALE": "Язык",
+  "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Формат плавающей точки для матрицы",
+  "app.parameters.DATETIME_FORMAT": "Формат даты/времени"
 }
