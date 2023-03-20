@@ -23,5 +23,9 @@ PARAMETERS_DEFINITION = [
 
 ]
 
+def add_parameters(*args):
+    for arg in args:
+        PARAMETERS_DEFINITION.append(arg)
+
 def get_defaults():
     return {item[0]: item[2] for item in PARAMETERS_DEFINITION}

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import cpu_count
 import os.path as ospath
 import json
-from .parameters_defs import get_defaults, PARAMETERS_DEFINITION
+from .parameters_defs import get_defaults, PARAMETERS_DEFINITION, add_parameters
 from .forms import MainParametersForm
 from .forms import localize_fields as localize_parameters_fields
 import tkinter as tk
