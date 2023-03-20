@@ -63,8 +63,8 @@ class SettingsDialog(Dialog):
 
 
 def add_parameters_menu(app_menu: tk.Menu):
-    from vtl_common.workspace_manager import Workspace
-    from vtl_common.localization import get_locale
+    from ..workspace_manager import Workspace
+    from ..localization import get_locale
     menu = tk.Menu(app_menu, tearoff=0)
 
     def settings_wrapper():

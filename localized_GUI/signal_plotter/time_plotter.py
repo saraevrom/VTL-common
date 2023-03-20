@@ -2,9 +2,9 @@ import numpy.random as rng
 import numpy as np
 from ..plotter import Plotter
 
-from utilities import set_vlines_position, set_vlines_position_ylims
+from ...utilities import set_vlines_position, set_vlines_position_ylims
 
-from vtl_common.parameters import SCALE_FLOATING_POINT_FORMAT
+from ...parameters import SCALE_FLOATING_POINT_FORMAT
 import numba as nb
 
 
