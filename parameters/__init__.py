@@ -5,6 +5,7 @@ import json
 from .parameters_defs import get_defaults, PARAMETERS_DEFINITION, add_parameters
 from .forms import MainParametersForm
 from .forms import localize_fields as localize_parameters_fields
+from .forms import set_main_params_form
 import tkinter as tk
 from tkinter.simpledialog import Dialog
 from vtl_common.common_GUI import TkDictForm
@@ -17,6 +18,7 @@ settings_path = ospath.join(ospath.dirname(cwd), "parameters.json")
 LOADED_SETTINGS = None
 
 def load_settings():
+    set_main_params_form()
     global LOADED_SETTINGS
     if ospath.isfile(settings_path):
         with open(settings_path, "r") as fp:

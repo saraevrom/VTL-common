@@ -9,9 +9,9 @@ from matplotlib.patches import Rectangle
 from matplotlib.pyplot import Normalize
 from astronomy import find_index
 matplotlib.use("TkAgg")
-from parameters import *
-from vtl_common.localization import get_locale
-from parameters import SCALE_FLOATING_POINT_FORMAT
+from ..parameters import *
+from ..localization import get_locale
+from ..parameters import SCALE_FLOATING_POINT_FORMAT
 
 LOWER_EDGES = np.arange(HALF_PIXELS)*PIXEL_SIZE+HALF_GAP_SIZE
 LOWER_EDGES = np.concatenate([-np.flip(LOWER_EDGES)-PIXEL_SIZE, LOWER_EDGES])
