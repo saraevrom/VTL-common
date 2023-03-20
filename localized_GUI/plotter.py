@@ -7,7 +7,7 @@ from matplotlib.axes import Axes
 import numpy as np
 from matplotlib.patches import Rectangle
 from matplotlib.pyplot import Normalize
-from astronomy import find_index
+from ..astronomy import find_index
 matplotlib.use("TkAgg")
 from ..parameters import *
 from ..localization import get_locale
