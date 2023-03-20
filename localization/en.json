@@ -13,6 +13,7 @@
   "app.filedialog_formats.csv": "Comma separated values",
   "app.filedialog_formats.gif": "GIF animation",
   "app.filedialog_formats.h5": "HDF5 data",
+  "app.filedialog_formats.zip": "ZIP archive",
 
   "app.widgets.gridplotter.use_autoscale": "Autoscale",
   "app.widgets.gridplotter.scale": "Scale",

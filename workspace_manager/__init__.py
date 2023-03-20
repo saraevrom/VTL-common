@@ -26,6 +26,12 @@ class Workspace(object):
         cwd = self.ensure_directory()
         if cwd:
             kwargs["initialdir"] = cwd
+            filetypes = []
+            if "auto_formats" in kwargs.keys():
+                for key in kwargs["auto_formats"]:
+                    filetypes.append((get_locale(f'app.filedialog_formats.{key}'),f"*.{key}"))
+                kwargs["filetypes"] = filetypes
+                del kwargs["auto_formats"]
 
     def askopenfilename(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
