@@ -40,5 +40,7 @@
   "app.parameters.NPROC": "Parallel computation processes",
   "app.parameters.LOCALE": "Language",
   "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Floating point format for grid plotter scale",
-  "app.parameters.DATETIME_FORMAT": "Datetime format"
+  "app.parameters.DATETIME_FORMAT": "Datetime format",
+  "app.parameters": "Parameters",
+  "app.menu.settings": "Settings"
 }

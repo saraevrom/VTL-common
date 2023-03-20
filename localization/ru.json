@@ -39,5 +39,7 @@
   "app.parameters.NPROC": "Количество потоков для параллельной обработки",
   "app.parameters.LOCALE": "Язык",
   "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Формат плавающей точки для матрицы",
-  "app.parameters.DATETIME_FORMAT": "Формат даты/времени"
+  "app.parameters.DATETIME_FORMAT": "Формат даты/времени",
+  "app.parameters": "Параметры",
+  "app.menu.settings": "Настройки"
 }
