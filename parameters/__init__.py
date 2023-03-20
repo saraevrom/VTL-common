@@ -8,7 +8,7 @@ from .forms import localize_fields as localize_parameters_fields
 from .forms import set_main_params_form
 import tkinter as tk
 from tkinter.simpledialog import Dialog
-from vtl_common.common_GUI import TkDictForm
+from ..common_GUI import TkDictForm
 from numba import set_num_threads
 
 cwd = ospath.abspath(__file__)
