@@ -13,7 +13,12 @@ class EntryWithEnterKey(tk.Entry):
     def __init__(self,*args,**kwargs):
         super().__init__(*args, **kwargs)
         self.bind("<Return>", self.on_keypress_enter)
+        self.bind("<FocusOut>", self.on_focus_out)
         self.on_commit = None
+
+    def on_focus_out(self, *args):
+        if self.on_commit:
+            self.on_commit()
 
     def on_keypress_enter(self, *args):
         self.winfo_toplevel().focus()
