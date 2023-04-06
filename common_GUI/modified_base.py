@@ -22,8 +22,8 @@ class EntryWithEnterKey(tk.Entry):
 
     def on_keypress_enter(self, *args):
         self.winfo_toplevel().focus()
-        if self.on_commit:
-            self.on_commit()
+        # if self.on_commit:
+        #     self.on_commit()
 
 
 class SpinboxWithEnterKey(Spinbox):
