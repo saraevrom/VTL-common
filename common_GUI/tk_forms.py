@@ -88,6 +88,7 @@ class ConfigEntry(object):
         self.color_index = color_index
         style = index_to_style(color_index)
         self.frame = tk.Frame(master, **style)
+        self.controller_obj = None
 
     def get_value(self):
         raise NotImplementedError("This method is not implemented")
@@ -97,6 +98,13 @@ class ConfigEntry(object):
 
     def keep_none(self):
         return True
+
+    def trigger_change(self):
+        if self.controller_obj:
+            self.controller_obj.trigger_change()
+
+    def on_trace(self, *args):
+        self.trigger_change()
 
 
 class EntryInvalidException(Exception):
@@ -170,7 +178,9 @@ class IntEntry(ConfigEntry):
         tk.Label(self.frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
         self.textvar.trace('w', lambda nm, idx, mode, var=self.textvar: self.validate_value(var))
-        EntryWithEnterKey(self.frame, textvar=self.textvar).pack(side="left",fill="both")
+        integer_entry = EntryWithEnterKey(self.frame, textvar=self.textvar)
+        integer_entry.pack(side="left",fill="both")
+        integer_entry.on_commit = self.trigger_change
         self.old_value = 0
 
     def validate_value(self, var):
@@ -207,7 +217,9 @@ class FloatEntry(ConfigEntry):
         super().__init__(name,master,conf,color_index)
         tk.Label(self.frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
-        EntryWithEnterKey(self.frame,textvar=self.textvar).pack(side="left",fill="both")
+        float_entry = EntryWithEnterKey(self.frame,textvar=self.textvar)
+        float_entry.pack(side="left",fill="both")
+        float_entry.on_commit = self.trigger_change
         self.old_value = 0
         self.textvar.trace('w', lambda nm, idx, mode, var=self.textvar: self.validate_value(var))
 
@@ -244,6 +256,9 @@ class CheckmarkEntry(ConfigEntry):
         super().__init__(name,master,conf,color_index)
         self.intvar = tk.IntVar(master)
         tk.Checkbutton(self.frame,text=conf["display_name"],variable=self.intvar).pack(anchor="nw")
+        self.intvar.trace("w", self.on_trace)
+
+
 
     def set_value(self,newval):
         self.intvar.set(int(newval))
@@ -284,6 +299,7 @@ class FileEntry(ConfigEntry):
         pth = asker(initialdir=self.conf["initialdir"], filetypes=self.conf["filetypes"])
         if pth:
             self.set_value(pth)
+            self.trigger_change()
         top = self.frame.winfo_toplevel()
         #top.grab_set()
         top.lift()
@@ -310,6 +326,7 @@ class RadioEntry(ConfigEntry):
         tk.Label(self.frame,text=conf["display_name"]).grid(row=0,column=0)
         self.intvar = tk.IntVar(master)
         self.intvar.set(0)
+        self.intvar.trace("w", self.on_trace)
         ind = 0
         for val in self.conf["values"]:
             tk.Radiobutton(self.frame,text=val,value=ind,variable=self.intvar).grid(row=ind+1,column=1)
@@ -338,6 +355,8 @@ class ComboEntry(ConfigEntry):
         else:
             self.combobox = ttk.Combobox(self.frame, values=conf["values"])
         self.combobox.pack(side="left")
+        self.combobox.bind("<Return>", self.on_trace)
+        self.combobox.bind("<<ComboboxSelected>>", self.on_trace)
 
     def set_value(self, newval):
         self.combobox.set(newval)
@@ -357,9 +376,10 @@ FIELDTYPES = {
 }
 
 
-def create_field(name,parent,conf, color_index=0,fill_entire=False):
+def create_field(name,parent,conf, color_index=0,fill_entire=False, controller=None):
     field_type, req_default = FIELDTYPES[conf["type"]]
     field = field_type(name,parent,conf, color_index)
+    field.controller_obj = controller
     if fill_entire:
         field.frame.pack(side="top", fill="both", expand=True)
     else:
@@ -407,7 +427,7 @@ class ArrayEntry(ConfigEntry):
         def ins_press():
             self._insert_after(i)
 
-        field = create_field(name, self.subframe, subconf, self.color_index+1)
+        field = create_field(name, self.subframe, subconf, self.color_index+1, controller=self)
         upbtn = tk.Button(field.frame,text="^", command=up_press)
         upbtn.pack(side="right", anchor="ne")
         downbtn = tk.Button(field.frame, text="v", command=down_press)
@@ -420,6 +440,7 @@ class ArrayEntry(ConfigEntry):
         if value_to_set is not None:
             field.set_value(value_to_set)
         self.subfields.append(field)
+        self.trigger_change()
 
 
     def _swap_indices(self, i1, i2):
@@ -443,15 +464,18 @@ class ArrayEntry(ConfigEntry):
     def move_up(self, index):
         if index != 0:
             self._swap_indices(index, index-1)
+        self.trigger_change()
 
     def move_down(self, index):
         if index < len(self.subfields)-1:
             self._swap_indices(index, index+1)
+        self.trigger_change()
 
     def delfield(self):
         if self.subfields:
             last = self.subfields.pop(-1)
             last.frame.destroy()
+        self.trigger_change()
 
     def set_value(self,newval):
         self.subfields.clear()
@@ -485,7 +509,7 @@ class OptionEntry(ConfigEntry):
         self.subconf = conf["subconf"]
 
         name = self.name+".option"
-        self.subfield = create_field(name, self.frame, self.subconf, self.color_index + 1)
+        self.subfield = create_field(name, self.frame, self.subconf, self.color_index + 1, controller=self)
         self.subfield.frame.pack_forget()
         self.use_var.trace("w",self.update_visibility)
 
@@ -495,6 +519,7 @@ class OptionEntry(ConfigEntry):
             self.subfield.frame.pack(side="bottom", fill="both")
         else:
             self.subfield.frame.pack_forget()
+        self.trigger_change()
 
 
     def set_value(self,newval):
@@ -567,6 +592,7 @@ class AlternatingEntry(ConfigEntry):
             if vset is not None:
                 print("Restoring", vset, "for", stype)
                 self.subfield.set_value(vset)
+        self.trigger_change()
 
     def select_field(self, index):
         if self.last_index == index:
@@ -585,7 +611,7 @@ class AlternatingEntry(ConfigEntry):
         if subconf is None:
             field = None
         else:
-            field = create_field(name,self.subframe, subconf, self.color_index+1)
+            field = create_field(name,self.subframe, subconf, self.color_index+1, controller=self)
 
         self.subfield=field
         self.last_index=index
@@ -633,6 +659,7 @@ class SubFormEntry(ConfigEntry):
             use_scrollview = conf["use_scrollview"]
         self.subform = TkDictForm(self.frame, self.subconf, use_scrollview, color_index=color_index+1)
         self.subform.pack(side="bottom",fill="x",expand=True, padx=5)
+        self.subform.on_commit = self.trigger_change
 
     def set_value(self,newval):
         self.subform.set_values(newval)
@@ -657,6 +684,7 @@ class TkDictForm(tk.Frame):
         self.configure(index_to_style(color_index))
         self.master = master
         self.tk_form_configuration = tk_form_configuration
+        self.on_commit = None
 
         if use_scrollview:
             self.formview = ScrollView(self)
@@ -671,7 +699,7 @@ class TkDictForm(tk.Frame):
         for i in tk_form_configuration.keys():
             conf = tk_form_configuration[i]
             name = i
-            field = create_field(name, self.contents_tgt, conf, self.color_index)
+            field = create_field(name, self.contents_tgt, conf, self.color_index, controller=self)
             self.fields[i] = field
 
     def get_values(self):
@@ -695,5 +723,6 @@ class TkDictForm(tk.Frame):
         for i in keys:
             self.fields[i].set_value(values[i])
 
-
-
+    def trigger_change(self):
+        if self.on_commit:
+            self.on_commit()
