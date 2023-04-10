@@ -4,10 +4,30 @@ import tkinter as tk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from ..localization import get_locale
-import os
+import os, re
+
 
 cwd = ospath.abspath(__file__)
 CONF_PATH = ospath.join(ospath.dirname(cwd), "workspace.json")
+
+
+def get_extensions(file_types):
+    return [re.findall(r"\.\w+", item[1]) for item in file_types]
+
+def add_extension(filename:str, extensions):
+    check_passed = False
+    candidate = ""
+    for ext in extensions:
+        if ext:
+            if not candidate:
+                candidate = ext[0]
+            if filename.endswith(ext[0]):
+                check_passed = True
+                break
+    if not check_passed:
+        print("Automatically added extension", candidate)
+        filename = filename + candidate
+    return filename
 
 
 class Workspace(object):
@@ -43,7 +63,10 @@ class Workspace(object):
 
     def asksaveasfilename(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
-        return filedialog.asksaveasfilename(*args, **kwargs)
+        filename = filedialog.asksaveasfilename(*args, **kwargs)
+        extensions = get_extensions(kwargs["filetypes"])
+        filename = add_extension(filename, extensions)
+        return filename
 
     def askopenfilenames(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
