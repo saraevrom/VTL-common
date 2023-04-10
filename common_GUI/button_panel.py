@@ -9,7 +9,7 @@ class ButtonPanel(tk.Frame):
     def _allocate_rows(self, rows):
         while rows > len(self.command_rows):
             index = len(self.command_rows)
-            new_row = tk.Frame(self, bg="red")
+            new_row = tk.Frame(self)
             new_row.grid(row=index, column=0, sticky="nsew")
             self.rowconfigure(index, weight=1)
             self.command_rows.append([new_row, 0])
