@@ -20,12 +20,12 @@ LOWER_EDGES = np.concatenate([-np.flip(LOWER_EDGES)-PIXEL_SIZE, LOWER_EDGES])
 
 
 class Plotter(ttk.Frame):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master, polar=False, *args, **kwargs):
         super(Plotter, self).__init__(master, *args, **kwargs)
         self.figure: Figure
         self.figure = Figure(figsize=(5, 4), dpi=100)
         self.axes: Axes
-        self.axes = self.figure.add_subplot(1, 1, 1)
+        self.axes = self.figure.add_subplot(1, 1, 1, polar=polar)
 
         self.mpl_canvas = FigureCanvasTkAgg(self.figure, self)
         self.mpl_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
