@@ -29,6 +29,7 @@
   "app.popup_plot.threshold": "Active pixels threshold",
   "app.popup_plot.detect_active": "Select active pixels",
   "app.popup_plot.show_pixels": "Show pixels",
+  "app.popup_plot.pixel_map": "Pixel map",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",

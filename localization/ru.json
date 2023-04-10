@@ -28,6 +28,7 @@
   "app.popup_plot.threshold": "Порог для активных пикселей",
   "app.popup_plot.detect_active": "Выбрать активные пиксели",
   "app.popup_plot.show_pixels": "Показать пиксели",
+  "app.popup_plot.pixel_map": "Карта пикселей",
 
   "app.parameters.MAIN_LATITUDE": "Широта обсерватории [°]",
   "app.parameters.MAIN_LONGITUDE": "Долгота обсерватории [°]",
