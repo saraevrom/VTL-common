@@ -15,8 +15,8 @@ def get_extensions(file_types):
     return [re.findall(r"\.\w+", item[1]) for item in file_types]
 
 def add_extension(filename:str, extensions):
-    if filename is None:
-        return None
+    if not filename:
+        return filename
     check_passed = False
     candidate = ""
     for ext in extensions:
