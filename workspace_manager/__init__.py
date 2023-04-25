@@ -12,7 +12,12 @@ CONF_PATH = ospath.join(ospath.dirname(cwd), "workspace.json")
 
 
 def get_extensions(file_types):
-    return [re.findall(r"\.\w+", item[1]) for item in file_types]
+    res = []
+    for item in file_types:
+        res += re.findall(r"\.\w+", item[1])
+    print("ACCEPTED EXTENSIONS", res)
+    return res
+    #return [re.findall(r"\.\w+", item[1]) for item in file_types]
 
 def add_extension(filename:str, extensions):
     if not filename:
@@ -22,11 +27,12 @@ def add_extension(filename:str, extensions):
     for ext in extensions:
         if ext:
             if not candidate:
-                candidate = ext[0]
-            if filename.endswith(ext[0]):
+                candidate = ext
+            if filename.endswith(ext):
                 check_passed = True
+                print("Extension check passed")
                 break
-    if not check_passed:
+    if not check_passed and candidate:
         print("Automatically added extension", candidate)
         filename = filename + candidate
     return filename
