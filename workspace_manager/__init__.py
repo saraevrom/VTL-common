@@ -57,7 +57,9 @@ class Workspace(object):
             filetypes = []
             if "auto_formats" in kwargs.keys():
                 for key in kwargs["auto_formats"]:
-                    filetypes.append((get_locale(f'app.filedialog_formats.{key}'),f"*.{key}"))
+                    subdata = " ".join([f"*.{subkey}" for subkey in key.split(" ")])
+                    locale_title = "_".join([subkey for subkey in key.split(" ")])
+                    filetypes.append((get_locale(f'app.filedialog_formats.{locale_title}'),subdata))
                 kwargs["filetypes"] = filetypes
                 del kwargs["auto_formats"]
 

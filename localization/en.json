@@ -12,6 +12,8 @@
   "app.filedialog_formats.txt": "Text file",
   "app.filedialog_formats.csv": "Comma separated values",
   "app.filedialog_formats.gif": "GIF animation",
+  "app.filedialog_formats.mp4": "MP4 animation",
+  "app.filedialog_formats.gif_mp4": "Animation",
   "app.filedialog_formats.h5": "HDF5 data",
   "app.filedialog_formats.zip": "ZIP archive",
 
