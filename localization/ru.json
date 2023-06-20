@@ -8,6 +8,7 @@
   "app.filedialog_formats.processed_mat": "Обработанные mat файлы",
   "app.filedialog_formats.raw_mat": "Файл с сырыми данными",
   "app.filedialog_formats.model": "Модель",
+  "app.filedialog_formats.pdf": "Портативный документ",
   "app.filedialog_formats.png": "Изображение PNG",
   "app.filedialog_formats.txt": "Текстовый документ",
   "app.filedialog_formats.csv": "Значения, разделённые запятыми",
@@ -16,6 +17,7 @@
   "app.filedialog_formats.gif_mp4": "Анимация",
   "app.filedialog_formats.h5": "Данные в HDF5",
   "app.filedialog_formats.zip": "ZIP архив",
+  "app.filedialog_formats.py": "Скрипт python",
 
   "app.widgets.gridplotter.use_autoscale": "Автоматическая нормировка",
   "app.widgets.gridplotter.scale": "Нормировка",

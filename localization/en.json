@@ -9,6 +9,7 @@
   "app.filedialog_formats.raw_mat": "Raw data",
   "app.filedialog_formats.model": "Model",
   "app.filedialog_formats.png": "PNG image",
+  "app.filedialog_formats.pdf": "Portable document format",
   "app.filedialog_formats.txt": "Text file",
   "app.filedialog_formats.csv": "Comma separated values",
   "app.filedialog_formats.gif": "GIF animation",
@@ -16,6 +17,7 @@
   "app.filedialog_formats.gif_mp4": "Animation",
   "app.filedialog_formats.h5": "HDF5 data",
   "app.filedialog_formats.zip": "ZIP archive",
+  "app.filedialog_formats.py": "Python script",
 
   "app.widgets.gridplotter.use_autoscale": "Autoscale",
   "app.widgets.gridplotter.scale": "Scale",

@@ -182,6 +182,9 @@ class GridPlotter(Plotter):
     def toggle_broken(self, i, j):
         self.alive_pixels_matrix[i, j] = not self.alive_pixels_matrix[i, j]
 
+    def mark_broken(self,i,j):
+        self.alive_pixels_matrix[i, j] = False
+
     def clear_highlight(self):
         self.highlight_pixels_matrix = np.zeros([2*HALF_PIXELS, 2*HALF_PIXELS]).astype(bool)
 

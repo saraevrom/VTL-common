@@ -67,6 +67,12 @@ class Workspace(object):
         self._modify_kwargs(kwargs)
         return filedialog.askopenfilename(*args, **kwargs)
 
+    def get_file(self, filename):
+        cwd = self.ensure_directory()
+        if cwd:
+            filepath = os.path.join(cwd, filename)
+            return filepath
+
     def askdirectory(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
         return filedialog.askdirectory(*args, **kwargs)
