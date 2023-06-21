@@ -47,6 +47,7 @@ class ChoosablePlotter(tk.Toplevel):
         self.settings_menu.push_settings_dict(self.settings_dict)
         self.plotter.switch_accumulation_mode(self.settings_dict["lightcurve"])
         self.plotter.use_mean = self.settings_dict["lightcurve_mean"]
+        self.plotter.flatten_ma = self.settings_dict["lightcurve_ma"]
         self.on_lmb(-1,-1)
         self.plotter.draw()
 

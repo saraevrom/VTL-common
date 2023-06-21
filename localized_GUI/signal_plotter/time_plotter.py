@@ -8,6 +8,28 @@ from ...parameters import SCALE_FLOATING_POINT_FORMAT
 import numba as nb
 
 
+@nb.njit(cache=True)
+def window_limiting(index, window, target_length):
+    if window>target_length:
+        return 0, target_length
+    start = index - window // 2
+    if start < 0:
+        start = 0
+    end = start + window
+    if end > target_length:
+        end = target_length
+        start = end - window
+    return start, end
+
+@nb.njit()
+def moving_average(src, win):
+    res = np.zeros(shape=src.shape)
+    for i in range(src.shape[0]):
+        start, end = window_limiting(i,win,src.shape[0])
+        res[i] = np.mean(src[start:end])
+    return res
+
+
 @nb.njit()
 def hsv_to_rgb(h,s,v):
     '''
@@ -77,6 +99,7 @@ class MainPlotter(Plotter):
             self.lines.append(line_row)
         self.display_data = display_data
         self.use_mean = False
+        self.flatten_ma = 1
         self.accumulated, = self.axes.plot(x_plot, np.zeros(shape=display_data.shape[0]), "-",
                                            color="black", label="_hidden")
         self.accumulated.set_visible(False)
@@ -200,7 +223,10 @@ class MainPlotter(Plotter):
         if checkmode =="Selected":
             srcdata = self.display_data[:, self.display_matrix]
             func = self.get_lightcurve_func()
-            self.accumulated.set_ydata(func(srcdata, axis=1))
+            base_lc = func(srcdata, axis=1)
+            diffused = moving_average(base_lc,self.flatten_ma)
+            self.accumulated.set_ydata(diffused)
+
         self.draw()
 
     def get_lightcurve_func(self):
