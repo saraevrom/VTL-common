@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.simpledialog import askinteger
 from ..plotter import GridPlotter
 import numpy as np
 from ...common_GUI.settings_frame import SettingMenu
@@ -19,7 +20,7 @@ class ChoosablePlotter(tk.Toplevel):
 
         auxpanel = tk.Frame(self)
         auxpanel.pack(side="right", fill="y")
-        self.selector = GridPlotter(auxpanel, enable_scale_configuration=False)
+        self.selector = GridPlotter(auxpanel, enable_scale_configuration=False, bright=True)
         self.selector.axes.set_title(get_locale("app.popup_plot.pixel_map"))
         self.selector.alive_pixels_matrix = np.full(fill_value=False, shape=(16, 16))
         self.selector.update_matrix_plot()
@@ -38,6 +39,11 @@ class ChoosablePlotter(tk.Toplevel):
         quickactive_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.detect_active"),
                                     command=self.on_active_select)
         quickactive_btn.pack(side="bottom", fill="x")
+
+        xlim_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.xlim"),
+                                    command=self.on_xlim)
+        xlim_btn.pack(side="bottom", fill="x")
+
         self.settings_menu.push_settings_dict(self.settings_dict)
 
     def get_axes(self):
@@ -102,6 +108,11 @@ class ChoosablePlotter(tk.Toplevel):
         if self._close_callback_cp is not None:
             self._close_callback_cp()
         self.destroy()
+
+    def on_xlim(self):
+        low_x = askinteger("xlim","low=")
+        high_x = askinteger("xlim","high=")
+        self.get_axes().set_xlim(low_x,high_x)
 
 
 class PopupPlotable(tk.Misc):

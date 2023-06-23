@@ -43,7 +43,7 @@ class Plotter(ttk.Frame):
 
 
 class GridPlotter(Plotter):
-    def __init__(self, master, norm=None, enable_scale_configuration=True, *args, **kwargs):
+    def __init__(self, master, norm=None, enable_scale_configuration=True, bright=False, *args, **kwargs):
         super(GridPlotter, self).__init__(master, *args, **kwargs)
         self.use_autoscale_var = tk.IntVar(self)
         self.use_autoscale_var.set(1)
@@ -53,6 +53,7 @@ class GridPlotter(Plotter):
         self.on_left_click_callback = None
         self.on_right_click_callback = None
         self.on_right_click_callback_outofbounds = None
+        self.bright = bright
 
         self.colorbar = None
         span = HALF_PIXELS*PIXEL_SIZE+HALF_GAP_SIZE
@@ -116,8 +117,11 @@ class GridPlotter(Plotter):
             if self.norm is None:
                 return
             high_fallback = self.norm.vmax
-        if low_fallback > high_fallback:
-            high_fallback = low_fallback + 1e-6
+        if low_fallback >= high_fallback:
+            if self.bright:
+                high_fallback = low_fallback - 1e-6
+            else:
+                high_fallback = low_fallback + 1e-6
 
         if not self.enable_scale_configuration or self.use_autoscale_var.get():
             low = low_fallback
