@@ -103,6 +103,7 @@ class GridPlotter(Plotter):
                             bbox=dict(boxstyle="round", fc="w"),
                             arrowprops=dict(arrowstyle="->"))
         self.annotation.set_visible(False)
+        self._last_alive = None
 
     def get_broken(self):
         return np.logical_not(self.alive_pixels_matrix)
@@ -185,6 +186,7 @@ class GridPlotter(Plotter):
 
     def toggle_broken(self, i, j):
         self.alive_pixels_matrix[i, j] = not self.alive_pixels_matrix[i, j]
+        self._last_alive = self.alive_pixels_matrix[i, j]
 
     def mark_broken(self,i,j):
         self.alive_pixels_matrix[i, j] = False
@@ -217,7 +219,8 @@ class GridPlotter(Plotter):
             elif event.button == 3:
                 if self.on_right_click_callback_outofbounds:
                     self.on_right_click_callback_outofbounds()
-
+            elif event.button == 1:  # LMB OOB
+                self._last_alive = None
 
     def on_leave(self, event):
         self.annotation.set_visible(False)
@@ -229,14 +232,17 @@ class GridPlotter(Plotter):
             j = find_index(event.ydata)
             if i >= 0 and j >= 0:
                 v = self.buffer_matrix[i, j]
-                i+=1
-                j+=1
                 self.annotation.xy = (event.xdata, event.ydata)
                 self.annotation.set_visible(True)
-                self.figure.canvas.draw_idle()
-                self.annotation.set_text(f"[{i}, {j}]\n({round(v,2)})")
+                self.annotation.set_text(f"[{i+1}, {j+1}]\n({round(v,2)})")
                 #print(f"HOVERING over {i},{j}")
+
+                if event.button == 1 and self._last_alive is not None:
+                    self.alive_pixels_matrix[i,j] = self._last_alive
+                    self.update_matrix_plot(True)
+
+                self.draw()
                 return
         self.annotation.set_visible(False)
-        self.figure.canvas.draw_idle()
+        self.draw()
 
