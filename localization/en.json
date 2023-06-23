@@ -31,6 +31,7 @@
   "app.popup_plot.lightcurve": "Light curve",
   "app.popup_plot.lightcurve_mean": "Light curve using mean instead of sum",
   "app.popup_plot.lightcurve_ma": "Light curve MA window",
+  "app.popup_plot.xlim": "Set x limits precisely",
   "app.popup_plot.threshold": "Active pixels threshold",
   "app.popup_plot.detect_active": "Select active pixels",
   "app.popup_plot.show_pixels": "Show pixels",

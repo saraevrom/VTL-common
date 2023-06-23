@@ -30,6 +30,7 @@
   "app.popup_plot.lightcurve": "Кривая свечения",
   "app.popup_plot.lightcurve_mean": "Кривая свечения использует среднее вместо суммы",
   "app.popup_plot.lightcurve_ma": "Окно MA для кривой свечения",
+  "app.popup_plot.xlim": "Точный выбор предела X",
   "app.popup_plot.threshold": "Порог для активных пикселей",
   "app.popup_plot.detect_active": "Выбрать активные пиксели",
   "app.popup_plot.show_pixels": "Показать пиксели",
