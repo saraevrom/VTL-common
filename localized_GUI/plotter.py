@@ -13,6 +13,8 @@ from ..parameters import *
 from ..localization import get_locale
 from ..parameters import SCALE_FLOATING_POINT_FORMAT
 
+from ..common_GUI.modified_base import EntryWithEnterKey
+
 LOWER_EDGES = np.arange(HALF_PIXELS)*PIXEL_SIZE+HALF_GAP_SIZE
 LOWER_EDGES = np.concatenate([-np.flip(LOWER_EDGES)-PIXEL_SIZE, LOWER_EDGES])
 
@@ -47,8 +49,10 @@ class GridPlotter(Plotter):
         super(GridPlotter, self).__init__(master, *args, **kwargs)
         self.use_autoscale_var = tk.IntVar(self)
         self.use_autoscale_var.set(1)
+
         self.min_norm_entry = tk.StringVar(self)
         self.max_norm_entry = tk.StringVar(self)
+
         self.enable_scale_configuration = enable_scale_configuration
         self.on_left_click_callback = None
         self.on_right_click_callback = None
@@ -86,18 +90,24 @@ class GridPlotter(Plotter):
         self.figure.canvas.mpl_connect("motion_notify_event", self.on_hover)
         self.figure.canvas.mpl_connect("axes_leave_event", self.on_leave)
 
-        norm_panel = tk.Frame(self)
-        norm_panel.pack(side=tk.BOTTOM, fill=tk.X)
+        tk_control_panel = tk.Frame(self)
+        tk_control_panel.pack(side=tk.BOTTOM, fill=tk.X)
         for i in range(4):
-            norm_panel.columnconfigure(i, weight=1)
+            tk_control_panel.columnconfigure(i, weight=1)
         if enable_scale_configuration:
-            autoscale_check = tk.Checkbutton(norm_panel, text=get_locale("app.widgets.gridplotter.use_autoscale"),
+            autoscale_check = tk.Checkbutton(tk_control_panel, text=get_locale("app.widgets.gridplotter.use_autoscale"),
                                              variable=self.use_autoscale_var)
             autoscale_check.grid(row=0, column=0, columnspan=4, sticky="w")
-            tk.Label(norm_panel, text=get_locale("app.widgets.gridplotter.scale")).grid(row=0, column=1, sticky="ew")
-            tk.Label(norm_panel, text="—").grid(row=0, column=3, sticky="ew")
-            tk.Entry(norm_panel, textvariable=self.min_norm_entry).grid(row=0, column=2, sticky="ew")
-            tk.Entry(norm_panel, textvariable=self.max_norm_entry).grid(row=0, column=4, sticky="ew")
+            tk.Label(tk_control_panel, text=get_locale("app.widgets.gridplotter.scale")).grid(row=0, column=1, sticky="ew")
+            tk.Label(tk_control_panel, text="—").grid(row=0, column=3, sticky="ew")
+            min_ = EntryWithEnterKey(tk_control_panel, textvariable=self.min_norm_entry)
+            min_.grid(row=0, column=2, sticky="ew")
+            min_.on_commit = self.on_scale_change_commit
+            max_ = EntryWithEnterKey(tk_control_panel, textvariable=self.max_norm_entry)
+            max_.grid(row=0, column=4, sticky="ew")
+            max_.on_commit = self.on_scale_change_commit
+            tk.Button(tk_control_panel, text="C", command=self.clear_broken).grid(row=0, column=5, sticky="e")
+
 
         self.annotation = self.axes.annotate("", xy=(0, 0), xytext=(-25, 20), textcoords="offset points",
                             bbox=dict(boxstyle="round", fc="w"),
@@ -105,8 +115,17 @@ class GridPlotter(Plotter):
         self.annotation.set_visible(False)
         self._last_alive = None
 
+    def on_scale_change_commit(self):
+        self.update_matrix_plot(True)
+        self.draw()
+
     def get_broken(self):
         return np.logical_not(self.alive_pixels_matrix)
+
+    def clear_broken(self):
+        self.alive_pixels_matrix = np.ones([2*HALF_PIXELS, 2*HALF_PIXELS]).astype(bool)
+        self.update_matrix_plot(True)
+        self.draw()
 
     def update_norm(self, low_fallback=None, high_fallback=None):
         if low_fallback is None:
@@ -164,19 +183,21 @@ class GridPlotter(Plotter):
             else:
                 low_auto = -1
                 high_auto = 0
+
             self.update_norm(low_auto, high_auto)
 
             if self.colorbar is None:
                 self.colorbar = self.figure.colorbar(plt.cm.ScalarMappable(norm=self.norm, cmap=PLOT_COLORMAP))
         # print("Normalized:", time.time()-start_time)
-        for j in range(2*HALF_PIXELS):
-            for i in range(2*HALF_PIXELS):
-                if self.highlight_pixels_matrix[i, j]:
-                    self.patches[j][i].set_color(PLOT_HIGHLIGHT_COLOR)
-                elif self.alive_pixels_matrix[i, j]:
-                    self.patches[j][i].set_color(PLOT_COLORMAP(self.norm(self.buffer_matrix[i, j])))
-                else:
-                    self.patches[j][i].set_color(PLOT_BROKEN_COLOR)
+        if self.norm is not None:
+            for j in range(2*HALF_PIXELS):
+                for i in range(2*HALF_PIXELS):
+                    if self.highlight_pixels_matrix[i, j]:
+                        self.patches[j][i].set_color(PLOT_HIGHLIGHT_COLOR)
+                    elif self.alive_pixels_matrix[i, j]:
+                        self.patches[j][i].set_color(PLOT_COLORMAP(self.norm(self.buffer_matrix[i, j])))
+                    else:
+                        self.patches[j][i].set_color(PLOT_BROKEN_COLOR)
         # print("Draw end:", time.time()-start_time)
 
     def set_broken(self, broken):
@@ -216,11 +237,32 @@ class GridPlotter(Plotter):
                 elif event.button == 3:  #RMB
                     if self.on_right_click_callback:
                         self.on_right_click_callback(i, j)
+                if event.dblclick and self._last_alive is not None:
+                    if i<8 and j<8:
+                        self.alive_pixels_matrix[:8,:8] = np.logical_not(self.alive_pixels_matrix[:8,:8])
+                    elif i>=8 and j<8:
+                        self.alive_pixels_matrix[8:,:8] = np.logical_not(self.alive_pixels_matrix[8:,:8])
+                    elif i<8 and j>=8:
+                        self.alive_pixels_matrix[:8,8:] = np.logical_not(self.alive_pixels_matrix[:8,8:])
+                    elif i>=8 and j>=8:
+                        self.alive_pixels_matrix[8:,8:] = np.logical_not(self.alive_pixels_matrix[8:,8:])
+
+                    self.update_matrix_plot(True)
+                    self.draw()
+                    if self.on_left_click_callback:
+                        self.on_left_click_callback(i, j)
             elif event.button == 3:
                 if self.on_right_click_callback_outofbounds:
                     self.on_right_click_callback_outofbounds()
             elif event.button == 1:  # LMB OOB
                 self._last_alive = None
+
+            if (i<0 or j<0) and event.dblclick:
+                self.alive_pixels_matrix = np.logical_not(self.alive_pixels_matrix)
+                self.update_matrix_plot(True)
+                self.draw()
+                if self.on_left_click_callback:
+                    self.on_left_click_callback(i, j)
 
     def on_leave(self, event):
         self.annotation.set_visible(False)
