@@ -49,6 +49,7 @@ class GridPlotter(Plotter):
         super(GridPlotter, self).__init__(master, *args, **kwargs)
         self.use_autoscale_var = tk.IntVar(self)
         self.use_autoscale_var.set(1)
+        self.use_autoscale_var.trace("w", self.on_scale_change_commit)
 
         self.min_norm_entry = tk.StringVar(self)
         self.max_norm_entry = tk.StringVar(self)
@@ -115,7 +116,7 @@ class GridPlotter(Plotter):
         self.annotation.set_visible(False)
         self._last_alive = None
 
-    def on_scale_change_commit(self):
+    def on_scale_change_commit(self, *args):
         self.update_matrix_plot(True)
         self.draw()
 
