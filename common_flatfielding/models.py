@@ -61,7 +61,7 @@ class FlatFieldingModel(object):
         return "tool_flatfielder.nothing", None
 
     def save(self, file_path, override_mcoeff=None):
-        save_data = self.dump()
+        save_data = self.dump(override_mcoeff)
         with open(file_path, "w") as fp:
             json.dump(save_data, fp, indent=4, sort_keys=True)
 
