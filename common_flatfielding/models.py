@@ -8,14 +8,22 @@ class FlatFieldingModel(object):
 
     def __init__(self):
         self.broken_pixels = None
+        self.master_coeff = 1.0
 
     def __str__(self):
         return type(self).__name__
 
     def apply(self, pixel_data):
-        raise NotImplementedError("How do I apply parameters?")
+        return self.master_coeff*self.evaluate(pixel_data)
+        #raise NotImplementedError("How do I apply parameters?")
 
     def apply_single(self, pixel_data, i, j):
+        return self.master_coeff*self.evaluate_single(pixel_data,i,j)
+
+    def evaluate(self, pixel_data):
+        raise NotImplementedError("How do I apply parameters?")
+
+    def evaluate_single(self, pixel_data, i, j):
         raise NotImplementedError("How do I apply parameter?")
 
     def get_broken_auto(self):
@@ -61,7 +69,8 @@ class FlatFieldingModel(object):
         class_name = type(self).__name__
         save_data = {
             "model": class_name,
-            "parameters": self.get_data()
+            "parameters": self.get_data(),
+            "master_coeff": self.master_coeff
         }
         return save_data
 
@@ -86,12 +95,14 @@ class FlatFieldingModel(object):
         return instance
 
     @staticmethod
-    def create_from_parameters(parameters):
+    def create_from_parameters(parameters:dict):
         if FlatFieldingModel.subclass_dict is None:
             FlatFieldingModel.subclass_dict = {cls.__name__: cls for cls in FlatFieldingModel.__subclasses__()}
         model = FlatFieldingModel.subclass_dict[parameters["model"]]
         instance = model()
         instance.set_data(parameters["parameters"])
+        mcoeff = parameters["parameters"].get("master_coeff", 1.0)
+        instance.master_coeff = mcoeff
         return instance
 
 class Linear(FlatFieldingModel):
@@ -104,13 +115,13 @@ class Linear(FlatFieldingModel):
     def get_broken_auto(self):
         return np.abs(self.coefficients) <= 1e-8
 
-    def apply(self, pixel_data):
+    def evaluate(self, pixel_data):
         rev_coeffs = 1/self.coefficients
         rev_coeffs[self.coefficients==0] = 0
         ret_data = (pixel_data - self.baseline) * rev_coeffs
         return ret_data
 
-    def apply_single(self, single_data, i, j):
+    def evaluate_single(self, single_data, i, j):
         if self.coefficients[i, j] == 0:
             rev_coeff = 0
         else:
@@ -166,7 +177,7 @@ class NonlinearSaturation(FlatFieldingModel):
     def display_parameter_2(self):
         return "flatfielder.response.title", self.response
 
-    def apply(self, pixel_data):
+    def evaluate(self, pixel_data):
         inv_A = 1/self.saturation
         inv_A[self.saturation == 0] = 0
         inv_B = self.saturation/self.response
@@ -176,7 +187,7 @@ class NonlinearSaturation(FlatFieldingModel):
         ret[(1-(pixel_data)*inv_A)<=0] = 0
         return ret
 
-    def apply_single(self, single_data,i,j):
+    def evaluate_single(self, single_data,i,j):
         A = self.saturation[i,j]
         B = self.response[i,j]/self.saturation[i,j]
         if A==0:
@@ -223,7 +234,7 @@ class NonlinearPileup(FlatFieldingModel):
     def display_parameter_2(self):
         return "flatfielder.divider.title", self.divider
 
-    def apply(self, pixel_data_in):
+    def evaluate(self, pixel_data_in):
         pixel_data = pixel_data_in*self.prescaler
         upper_clamp = self.divider / np.e
         pixels_clip = np.clip(pixel_data, a_min=0, a_max=upper_clamp)
@@ -231,7 +242,7 @@ class NonlinearPileup(FlatFieldingModel):
         pre = np.nan_to_num(pre)
         return pre
 
-    def apply_single(self, single_data_in, i, j):
+    def evaluate_single(self, single_data_in, i, j):
         single_data = single_data_in*self.prescaler
         divider = self.divider[i, j]
         sens = self.sensitivity[i, j]
@@ -281,7 +292,7 @@ class Chain(FlatFieldingModel):
         self.models = [self.create_from_parameters(item) for item in x_data["models"]]
         self.broken_pixels = np.array(x_data["broken"])
 
-    def apply(self, pixel_data):
+    def evaluate(self, pixel_data):
         if self.models:
             workon = self.models[0].apply(pixel_data)
             for model in self.models[1:]:
@@ -297,7 +308,7 @@ class Chain(FlatFieldingModel):
             return workon
         return pixel_data
 
-    def apply_single(self, pixel_data, i, j):
+    def evaluate_single(self, pixel_data, i, j):
         if self.models:
             workon = self.models[0].apply_single(pixel_data, i, j)
             for model in self.models[1:]:
