@@ -9,6 +9,7 @@ PARAMETERS_DEFINITION = [
     ["PIXEL_SIZE", FloatNode, 2.85],
     ["HALF_GAP_SIZE", FloatNode, 2.0],
     ["HALF_PIXELS", IntNode, 8],
+    ["APERTURE", FloatNode, 19.6e2],
 
     ["PLOT_COLORMAP", ColormapSetting, "viridis"],
     ["PLOT_BROKEN_COLOR", StringNode, "black"],
@@ -20,7 +21,6 @@ PARAMETERS_DEFINITION = [
 
     ["SCALE_FLOATING_POINT_FORMAT", StringNode, "{:.2f}"],
     ["DATETIME_FORMAT", StringNode, "%Y-%m-%d %H:%M:%S"],
-
 ]
 
 def add_parameters(*args):

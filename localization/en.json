@@ -41,6 +41,7 @@
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",
   "app.parameters.PIXEL_SIZE": "Pixel size [mm]",
   "app.parameters.HALF_GAP_SIZE": "Gap size [mm]",
+  "app.parameters.APERTURE": "Aperture [mm^2]",
   "app.parameters.HALF_PIXELS": "One PMT pixels count",
   "app.parameters.PLOT_COLORMAP": "Grid plotter colormap",
   "app.parameters.PLOT_BROKEN_COLOR": "Grid plotter broken pixel color",

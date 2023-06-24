@@ -39,6 +39,7 @@
   "app.parameters.MAIN_LATITUDE": "Широта обсерватории [°]",
   "app.parameters.MAIN_LONGITUDE": "Долгота обсерватории [°]",
   "app.parameters.PIXEL_SIZE": "Размер пикселя [мм]",
+  "app.parameters.APERTURE": "Апертура [мм^2]",
   "app.parameters.HALF_GAP_SIZE": "Размер зазора между ФЭУ [мм]",
   "app.parameters.HALF_PIXELS": "Количество пикселей в ряду одного ФЭУ",
   "app.parameters.PLOT_COLORMAP": "Карта цветов для матрицы",
