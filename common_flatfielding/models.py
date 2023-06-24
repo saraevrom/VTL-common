@@ -60,17 +60,21 @@ class FlatFieldingModel(object):
     def display_parameter_2(self):
         return "tool_flatfielder.nothing", None
 
-    def save(self, file_path):
+    def save(self, file_path, override_mcoeff=None):
         save_data = self.dump()
         with open(file_path, "w") as fp:
             json.dump(save_data, fp, indent=4, sort_keys=True)
 
-    def dump(self):
+    def dump(self, override_mcoeff=None):
         class_name = type(self).__name__
+        if override_mcoeff is None:
+            mcoeff = self.master_coeff
+        else:
+            mcoeff = override_mcoeff
         save_data = {
             "model": class_name,
             "parameters": self.get_data(),
-            "master_coeff": self.master_coeff
+            "master_coeff": mcoeff
         }
         return save_data
 
