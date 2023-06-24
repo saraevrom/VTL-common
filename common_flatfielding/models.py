@@ -101,7 +101,7 @@ class FlatFieldingModel(object):
         model = FlatFieldingModel.subclass_dict[parameters["model"]]
         instance = model()
         instance.set_data(parameters["parameters"])
-        mcoeff = parameters["parameters"].get("master_coeff", 1.0)
+        mcoeff = parameters.get("master_coeff", 1.0)
         instance.master_coeff = mcoeff
         return instance
 
