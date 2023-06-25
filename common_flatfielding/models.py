@@ -15,7 +15,7 @@ class FlatFieldingModel(object):
         return type(self).__name__
 
     def apply(self, pixel_data):
-        return self.master_coeff*self.evaluate(pixel_data)
+        return self.master_coeff*self.evaluate(pixel_data)+self.master_offset
         #raise NotImplementedError("How do I apply parameters?")
 
     def apply_single(self, pixel_data, i, j):
