@@ -9,6 +9,7 @@ class FlatFieldingModel(object):
     def __init__(self):
         self.broken_pixels = None
         self.master_coeff = 1.0
+        self.master_offset = 0.0
 
     def __str__(self):
         return type(self).__name__
@@ -18,7 +19,7 @@ class FlatFieldingModel(object):
         #raise NotImplementedError("How do I apply parameters?")
 
     def apply_single(self, pixel_data, i, j):
-        return self.master_coeff*self.evaluate_single(pixel_data,i,j)
+        return self.master_coeff*self.evaluate_single(pixel_data,i,j)+self.master_offset
 
     def evaluate(self, pixel_data):
         raise NotImplementedError("How do I apply parameters?")
@@ -60,21 +61,26 @@ class FlatFieldingModel(object):
     def display_parameter_2(self):
         return "tool_flatfielder.nothing", None
 
-    def save(self, file_path, override_mcoeff=None):
-        save_data = self.dump(override_mcoeff)
+    def save(self, file_path, override_mcoeff=None, override_offset=None):
+        save_data = self.dump(override_mcoeff, override_offset)
         with open(file_path, "w") as fp:
             json.dump(save_data, fp, indent=4, sort_keys=True)
 
-    def dump(self, override_mcoeff=None):
+    def dump(self, override_mcoeff=None, override_offset=None):
         class_name = type(self).__name__
         if override_mcoeff is None:
             mcoeff = self.master_coeff
         else:
             mcoeff = override_mcoeff
+        if override_offset is None:
+            moff = self.master_offset
+        else:
+            moff = override_offset
         save_data = {
             "model": class_name,
             "parameters": self.get_data(),
-            "master_coeff": mcoeff
+            "master_coeff": mcoeff,
+            "master_offset": moff
         }
         return save_data
 
@@ -107,6 +113,8 @@ class FlatFieldingModel(object):
         instance.set_data(parameters["parameters"])
         mcoeff = parameters.get("master_coeff", 1.0)
         instance.master_coeff = mcoeff
+        moff = parameters.get("master_offset",0.0)
+        instance.master_offset = moff
         return instance
 
 class Linear(FlatFieldingModel):
