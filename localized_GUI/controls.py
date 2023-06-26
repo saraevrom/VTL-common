@@ -38,3 +38,4 @@ class TkFormControlPanel(tk.Frame):
             with open(filename, "r") as fp:
                 jsd = json.load(fp)
             self.connected_form.set_values(jsd)
+            self.connected_form.trigger_change()
