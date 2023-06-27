@@ -20,7 +20,7 @@ class ChoosablePlotter(tk.Toplevel):
 
         auxpanel = tk.Frame(self)
         auxpanel.pack(side="right", fill="y")
-        self.selector = GridPlotter(auxpanel, enable_scale_configuration=False, bright=True)
+        self.selector = GridPlotter(auxpanel, enable_scale_configuration=False, bright=True, enable_pixel_dclick=False)
         self.selector.axes.set_title(get_locale("app.popup_plot.pixel_map"))
         self.selector.alive_pixels_matrix = np.full(fill_value=False, shape=(16, 16))
         self.selector.update_matrix_plot()

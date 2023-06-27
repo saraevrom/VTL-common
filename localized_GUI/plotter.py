@@ -45,7 +45,7 @@ class Plotter(ttk.Frame):
 
 
 class GridPlotter(Plotter):
-    def __init__(self, master, norm=None, enable_scale_configuration=True, bright=False, *args, **kwargs):
+    def __init__(self, master, norm=None, enable_scale_configuration=True, bright=False, enable_pixel_dclick=True, *args, **kwargs):
         super(GridPlotter, self).__init__(master, *args, **kwargs)
         self.use_autoscale_var = tk.IntVar(self)
         self.use_autoscale_var.set(1)
@@ -115,6 +115,7 @@ class GridPlotter(Plotter):
                             arrowprops=dict(arrowstyle="->"))
         self.annotation.set_visible(False)
         self._last_alive = None
+        self.enable_pixel_dclick = enable_pixel_dclick
 
     def on_scale_change_commit(self, *args):
         self.update_matrix_plot(True)
@@ -238,7 +239,7 @@ class GridPlotter(Plotter):
                 elif event.button == 3:  #RMB
                     if self.on_right_click_callback:
                         self.on_right_click_callback(i, j)
-                if event.dblclick and self._last_alive is not None:
+                if self.enable_pixel_dclick and event.dblclick and self._last_alive is not None:
                     if i<8 and j<8:
                         self.alive_pixels_matrix[:8,:8] = np.logical_not(self.alive_pixels_matrix[:8,:8])
                     elif i>=8 and j<8:
