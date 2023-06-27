@@ -5,10 +5,11 @@ class ValueNode(Node):
     Node corresponding to fields that store value (base class)
     '''
     def __init__(self):
-        self.value = None
+        self.value = self.DEFAULT_VALUE
 
     def parse_formdata(self, formdata):
-        self.value = formdata
+        if formdata is not None:
+            self.value = formdata
 
     def get_data(self):
         return self.value
