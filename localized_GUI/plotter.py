@@ -282,10 +282,11 @@ class GridPlotter(Plotter):
                 #print(f"HOVERING over {i},{j}")
 
                 if event.button == 1 and self._last_alive is not None:
-                    self.alive_pixels_matrix[i,j] = self._last_alive
-                    self.update_matrix_plot(True)
-                    if self.on_left_click_callback:
-                        self.on_left_click_callback(i, j)
+                    if self.alive_pixels_matrix[i,j] != self._last_alive:
+                        self.alive_pixels_matrix[i,j] = self._last_alive
+                        self.update_matrix_plot(True)
+                        if self.on_left_click_callback:
+                            self.on_left_click_callback(i, j)
                 self.draw()
                 return
         self.annotation.set_visible(False)
