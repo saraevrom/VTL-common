@@ -113,6 +113,7 @@ class MainPlotter(Plotter):
         self.figure.canvas.mpl_connect('button_press_event', self.on_button_press_event)
         self.figure.canvas.mpl_connect('motion_notify_event', self.on_hover_event)
         self.figure.canvas.mpl_connect('figure_leave_event', self.on_mouse_leave)
+
         self.__right_hold = False
         self.__start_x = 0
         self.__end_x = 0

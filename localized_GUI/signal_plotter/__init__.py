@@ -33,18 +33,53 @@ class ChoosablePlotter(tk.Toplevel):
         self.settings_menu = SettingMenu(auxpanel, autocommit=True)
         self.settings_menu.commit_action = self.on_settings_commit
         build_menu(self.settings_menu)
-        self.settings_menu.pack(side="bottom",fill="x")
         self.settings_dict = dict()
 
         quickactive_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.detect_active"),
                                     command=self.on_active_select)
-        quickactive_btn.pack(side="bottom", fill="x")
 
         xlim_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.xlim"),
                                     command=self.on_xlim)
+
+
+        scale_panel = tk.Frame(auxpanel)
+
+        self.xscale_var = tk.IntVar(self)
+        self.xscale_var.set(0)
+        self.yscale_var = tk.IntVar(self)
+        self.yscale_var.set(0)
+
+        tk.Label(scale_panel, text="X").grid(row=0,column=0)
+        tk.Radiobutton(scale_panel,text="lin", variable=self.xscale_var, value=0).grid(row=0,column=1)
+        tk.Radiobutton(scale_panel,text="log", variable=self.xscale_var, value=1).grid(row=0,column=2)
+        self.xscale_var.trace("w", self.on_xscale_change)
+
+        tk.Label(scale_panel, text="Y").grid(row=1,column=0)
+        tk.Radiobutton(scale_panel, text="lin", variable=self.yscale_var, value=0).grid(row=1, column=1)
+        tk.Radiobutton(scale_panel, text="log", variable=self.yscale_var, value=1).grid(row=1, column=2)
+        self.yscale_var.trace("w", self.on_yscale_change)
+
+
+        quickactive_btn.pack(side="bottom", fill="x")
         xlim_btn.pack(side="bottom", fill="x")
+        scale_panel.pack(side="bottom",fill="x")
+        self.settings_menu.pack(side="bottom",fill="x")
 
         self.settings_menu.push_settings_dict(self.settings_dict)
+
+    def on_xscale_change(self,*args):
+        if self.xscale_var.get():
+            self.plotter.axes.set_xscale("log")
+        else:
+            self.plotter.axes.set_xscale("linear")
+        self.plotter.draw()
+
+    def on_yscale_change(self,*args):
+        if self.yscale_var.get():
+            self.plotter.axes.set_yscale("log")
+        else:
+            self.plotter.axes.set_yscale("linear")
+        self.plotter.draw()
 
     def get_axes(self):
         return self.plotter.axes
