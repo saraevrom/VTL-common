@@ -70,6 +70,22 @@ def index_to_style(color_index):
     color = index_to_color(color_index)
     return dict(highlightbackground="gray", background=color, highlightthickness=1,bd=5)
 
+def index_to_style_nobd(color_index):
+    color = index_to_color(color_index)
+    return dict(highlightbackground="gray", background=color, highlightthickness=1)
+
+
+LOCK_POSITIONS = {
+    "r": (
+        dict(side="right", fill="y"),
+        dict(side="left", fill="both", expand=True)
+    ),
+    "t": (
+        dict(side="top", fill="x"),
+        dict(side="bottom", fill="both", expand=True)
+    )
+}
+
 class ConfigEntry(object):
     '''
     Base class for form fields.
@@ -82,18 +98,37 @@ class ConfigEntry(object):
 
     Some keys are unique to fields. See help(<Field type>Entry)
     '''
-    def __init__(self,name,master,conf,color_index=0):
+    def __init__(self,name,master,conf,color_index=0, protection=False, lock_pos="r"):
         self.conf = conf
         self.name = name
+        self._protection_enabled = protection
         self.color_index = color_index
         style = index_to_style(color_index)
+        style1 = index_to_style_nobd(color_index)
+
         self.frame = tk.Frame(master, **style)
+        self._protection_var = tk.IntVar(self.frame)
+        lock_kwargs, main_kwargs = LOCK_POSITIONS[lock_pos]
+        if protection:
+            pframe = tk.Frame(self.frame, **style1)
+            pframe.pack(**lock_kwargs)
+            lock = tk.Checkbutton(pframe, text="LOCK", variable=self._protection_var, anchor="w")
+            lock.pack(fill="both", expand=True)
+        self.content_frame = tk.Frame(self.frame, **style1)
+        self.content_frame.pack(**main_kwargs)
         self.controller_obj = None
 
     def get_value(self):
+        return self._get_value()
+
+    def _get_value(self):
         raise NotImplementedError("This method is not implemented")
 
-    def set_value(self,newval):
+    def set_value(self, newval):
+        if not (self._protection_enabled and self._protection_var.get()):
+            self._set_value(newval)
+
+    def _set_value(self,newval):
         raise NotImplementedError("This method is not implemented")
 
     def keep_none(self):
@@ -124,16 +159,16 @@ class StringEntry(ConfigEntry):
     type: "str"
     No unique keys
     '''
-    def __init__(self,name,master,conf,color_index=0):
+    def __init__(self,name,master,conf,color_index=0, protection=False):
         super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame,text=conf["display_name"]).pack(side="left",fill="both")
+        tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
         EntryWithEnterKey(self.frame,textvar=self.textvar).pack(side="left",fill="both")
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         self.textvar.set(newval)
 
-    def get_value(self):
+    def _get_value(self):
         return self.textvar.get()
 
     def get_frame(self):
@@ -146,18 +181,18 @@ class LabelEntry(ConfigEntry):
     type: "label"
     fancy: makes label big and noticeable
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name, master, conf, color_index)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name, master, conf, color_index, protection)
         if conf["fancy"]:
-            label = tk.Label(self.frame, text=conf["display_name"], anchor="center", font='TkDefaultFont 10 bold')
+            label = tk.Label(self.content_frame, text=conf["display_name"], anchor="center", font='TkDefaultFont 10 bold')
         else:
-            label = tk.Label(self.frame, text=conf["display_name"], anchor="center")
+            label = tk.Label(self.content_frame, text=conf["display_name"], anchor="center")
         label.pack(side="left", fill="both", expand=True)
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         pass
 
-    def get_value(self):
+    def _get_value(self):
         return None
 
     def keep_none(self):
@@ -173,12 +208,12 @@ class IntEntry(ConfigEntry):
     type: "int"
     No unique keys
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame,text=conf["display_name"]).pack(side="left",fill="both")
-        self.textvar = tk.StringVar(master)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
+        tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
+        self.textvar = tk.StringVar(self.content_frame)
         self.textvar.trace('w', lambda nm, idx, mode, var=self.textvar: self.validate_value(var))
-        integer_entry = EntryWithEnterKey(self.frame, textvar=self.textvar)
+        integer_entry = EntryWithEnterKey(self.content_frame, textvar=self.textvar)
         integer_entry.pack(side="left",fill="both")
         integer_entry.on_commit = self.trigger_change
         self.old_value = 0
@@ -191,11 +226,11 @@ class IntEntry(ConfigEntry):
         except:
             var.set(self.old_value)
 
-    def set_value(self, newval):
+    def _set_value(self, newval):
         self.textvar.set(str(newval))
         self.old_value = newval
 
-    def get_value(self):
+    def _get_value(self):
         sval = self.textvar.get()
         try:
             if sval:
@@ -213,11 +248,11 @@ class FloatEntry(ConfigEntry):
     type: "float"
     No unique keys
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame,text=conf["display_name"]).pack(side="left",fill="both")
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
+        tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
-        float_entry = EntryWithEnterKey(self.frame,textvar=self.textvar)
+        float_entry = EntryWithEnterKey(self.content_frame,textvar=self.textvar)
         float_entry.pack(side="left",fill="both")
         float_entry.on_commit = self.trigger_change
         self.old_value = 0
@@ -231,10 +266,10 @@ class FloatEntry(ConfigEntry):
         except:
             var.set(self.old_value)
 
-    def set_value(self, newval):
+    def _set_value(self, newval):
         self.textvar.set(str(newval))
 
-    def get_value(self):
+    def _get_value(self):
         sval = self.textvar.get()
         try:
             if sval:
@@ -252,18 +287,18 @@ class CheckmarkEntry(ConfigEntry):
     type: "bool"
     No unique keys
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
         self.intvar = tk.IntVar(master)
-        tk.Checkbutton(self.frame,text=conf["display_name"],variable=self.intvar).pack(anchor="nw")
+        tk.Checkbutton(self.content_frame,text=conf["display_name"],variable=self.intvar).pack(anchor="nw")
         self.intvar.trace("w", self.on_trace)
 
 
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         self.intvar.set(int(newval))
 
-    def get_value(self):
+    def _get_value(self):
         return bool(self.intvar.get())
 
 class FileEntry(ConfigEntry):
@@ -275,12 +310,12 @@ class FileEntry(ConfigEntry):
     filetypes -- File types for dialog
     ask_mode -- Valid values are "open","saveas","directory". Mode for loading path. default is saveas
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
         self.stringvar = tk.StringVar(master)
-        tk.Label(self.frame, text=conf["display_name"]).pack(side="left")
-        tk.Button(self.frame, text="Choose file", command=self.command).pack(side="left")
-        tk.Label(self.frame, textvariable=self.stringvar).pack(side="left",fill="x")
+        tk.Label(self.content_frame, text=conf["display_name"]).pack(side="left")
+        tk.Button(self.content_frame, text="Choose file", command=self.command).pack(side="left")
+        tk.Label(self.content_frame, textvariable=self.stringvar).pack(side="left",fill="x")
         self.ask_mode = "saveas"
         if "ask_mode" in conf.keys():
             self.ask_mode = conf["ask_mode"]
@@ -304,14 +339,14 @@ class FileEntry(ConfigEntry):
         #top.grab_set()
         top.lift()
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         if newval:
             self.stringvar.set(os.path.relpath(newval,self.conf["initialdir"]))
         else:
             self.stringvar.set("")
         self.realvalue = newval
 
-    def get_value(self):
+    def _get_value(self):
         return self.realvalue
 
 class RadioEntry(ConfigEntry):
@@ -321,21 +356,21 @@ class RadioEntry(ConfigEntry):
     type: "radio"
     values -- selection options.
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame,text=conf["display_name"]).grid(row=0,column=0)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
+        tk.Label(self.content_frame,text=conf["display_name"]).grid(row=0,column=0)
         self.intvar = tk.IntVar(master)
         self.intvar.set(0)
         self.intvar.trace("w", self.on_trace)
         ind = 0
         for val in self.conf["values"]:
-            tk.Radiobutton(self.frame,text=val,value=ind,variable=self.intvar).grid(row=ind+1,column=1)
+            tk.Radiobutton(self.content_frame,text=val,value=ind,variable=self.intvar).grid(row=ind+1,column=1)
             ind+=1
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         self.intvar.set(self.conf["values"].index(newval))
 
-    def get_value(self):
+    def _get_value(self):
         return self.conf["values"][self.intvar.get()]
 
 class ComboEntry(ConfigEntry):
@@ -346,22 +381,22 @@ class ComboEntry(ConfigEntry):
     values -- selection options.
     readonly -- is it possible to edit text inside box?
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame, text=conf["display_name"]).pack(side="left")
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection)
+        tk.Label(self.content_frame, text=conf["display_name"]).pack(side="left")
         ro = get_kw_bool(conf, "readonly")
         if ro:
-            self.combobox = ttk.Combobox(self.frame, values=conf["values"], state="readonly")
+            self.combobox = ttk.Combobox(self.content_frame, values=conf["values"], state="readonly")
         else:
-            self.combobox = ttk.Combobox(self.frame, values=conf["values"])
+            self.combobox = ttk.Combobox(self.content_frame, values=conf["values"])
         self.combobox.pack(side="left")
         self.combobox.bind("<Return>", self.on_trace)
         self.combobox.bind("<<ComboboxSelected>>", self.on_trace)
 
-    def set_value(self, newval):
+    def _set_value(self, newval):
         self.combobox.set(newval)
 
-    def get_value(self):
+    def _get_value(self):
         return self.combobox.get()
 
 FIELDTYPES = {
@@ -376,9 +411,9 @@ FIELDTYPES = {
 }
 
 
-def create_field(name,parent,conf, color_index=0,fill_entire=False, controller=None):
+def create_field(name,parent,conf, color_index=0,fill_entire=False, controller=None, protection=False):
     field_type, req_default = FIELDTYPES[conf["type"]]
-    field = field_type(name,parent,conf, color_index)
+    field = field_type(name,parent,conf, color_index, protection)
     field.controller_obj = controller
     if fill_entire:
         field.frame.pack(side="top", fill="both", expand=True)
@@ -396,13 +431,13 @@ class ArrayEntry(ConfigEntry):
     type: "array"
     subconf -- config for containing field. Index is appended to display_name.
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        tk.Label(self.frame,text=conf["display_name"]).pack(side="top", anchor="nw")
-        self.subframe = tk.Frame(self.frame)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection, lock_pos="t")
+        tk.Label(self.content_frame,text=conf["display_name"]).pack(side="top", anchor="nw")
+        self.subframe = tk.Frame(self.content_frame)
         self.subframe.pack(side="top",fill="both")
         self.subfields = []
-        bottomframe = tk.Frame(self.frame)
+        bottomframe = tk.Frame(self.content_frame)
         tk.Button(bottomframe,text="-",command=self.delfield).pack(side="right")
         tk.Button(bottomframe,text="+",command=self.addfield).pack(side="left")
         bottomframe.pack(side="bottom",fill="x")
@@ -427,7 +462,8 @@ class ArrayEntry(ConfigEntry):
         def ins_press():
             self._insert_after(i)
 
-        field = create_field(name, self.subframe, subconf, self.color_index+1, controller=self)
+        field = create_field(name, self.subframe, subconf, self.color_index+1, controller=self,
+                             protection=self._protection_enabled)
         upbtn = tk.Button(field.frame,text="^", command=up_press)
         upbtn.pack(side="right", anchor="ne")
         downbtn = tk.Button(field.frame, text="v", command=down_press)
@@ -477,7 +513,7 @@ class ArrayEntry(ConfigEntry):
             last.frame.destroy()
         self.trigger_change()
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         self.subfields.clear()
         for widget in self.subframe.winfo_children():
             widget.destroy()
@@ -485,7 +521,7 @@ class ArrayEntry(ConfigEntry):
             self.addfield(e)
 
 
-    def get_value(self):
+    def _get_value(self):
         r = []
         for sf in self.subfields:
             r.append(sf.get_value())
@@ -502,14 +538,15 @@ class OptionEntry(ConfigEntry):
     subconf -- controlled widget
     '''
 
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection, lock_pos="t")
         self.use_var = tk.IntVar(master)
-        tk.Checkbutton(self.frame, text=conf["display_name"], variable=self.use_var).pack(anchor="nw")
+        tk.Checkbutton(self.content_frame, text=conf["display_name"], variable=self.use_var).pack(anchor="nw")
         self.subconf = conf["subconf"]
 
         name = self.name+".option"
-        self.subfield = create_field(name, self.frame, self.subconf, self.color_index + 1, controller=self)
+        self.subfield = create_field(name, self.content_frame, self.subconf, self.color_index + 1, controller=self,
+                                     protection=self._protection_enabled)
         self.subfield.frame.pack_forget()
         self.use_var.trace("w",self.update_visibility)
 
@@ -522,7 +559,7 @@ class OptionEntry(ConfigEntry):
         self.trigger_change()
 
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         if newval is None:
             self.use_var.set(0)
             self.update_visibility()
@@ -531,7 +568,7 @@ class OptionEntry(ConfigEntry):
             self.update_visibility()
             self.subfield.set_value(newval)
 
-    def get_value(self):
+    def _get_value(self):
         if self.use_var.get() != 0:
             return self.subfield.get_value()
         else:
@@ -552,18 +589,18 @@ class AlternatingEntry(ConfigEntry):
         r["selection_type"] -- selected branch name
         r["value"] -- contents of branch
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection, lock_pos="t")
         self.remembered_selections = dict()
-        topframe = tk.Frame(self.frame)
+        topframe = tk.Frame(self.content_frame)
         topframe.pack(side="top",fill="x")
 
-        self.subframe = tk.Frame(self.frame)
+        self.subframe = tk.Frame(self.content_frame)
         self.subframe.pack(side="bottom",fill="both",expand=True)
 
         tk.Label(topframe,text=conf["display_name"]).pack(side="left")
 
-        self.visibility_toggle_var = tk.IntVar(self.frame)
+        self.visibility_toggle_var = tk.IntVar(self.content_frame)
         self.visibility_toggle_var.set(1)
         self.visibility_toggle_var.trace("w", self.update_visibility)
         visibility_toggle = tk.Checkbutton(topframe, variable=self.visibility_toggle_var)
@@ -573,7 +610,7 @@ class AlternatingEntry(ConfigEntry):
         self.subconfs = [item["subconf"] for item in conf["values"]]
         self.subfield = None
 
-        self.sv = tk.StringVar(self.frame)
+        self.sv = tk.StringVar(self.content_frame)
         self.sv.trace('w',self.on_combo_change)
 
         self.combobox = ttk.Combobox(topframe, textvar=self.sv, values=self.valnames, state="readonly")
@@ -611,7 +648,8 @@ class AlternatingEntry(ConfigEntry):
         if subconf is None:
             field = None
         else:
-            field = create_field(name,self.subframe, subconf, self.color_index+1, controller=self)
+            field = create_field(name, self.subframe, subconf, self.color_index+1, controller=self,
+                                 protection=self._protection_enabled)
 
         self.subfield=field
         self.last_index=index
@@ -624,14 +662,14 @@ class AlternatingEntry(ConfigEntry):
         else:
             self.subframe.pack_forget()
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         sel = newval["selection_type"]
         self.combobox.set(sel)
         self.select_field(self.valnames.index(sel))
         if "value" in newval.keys() and (self.subfield is not None):
             self.subfield.set_value(newval["value"])
 
-    def get_value(self):
+    def _get_value(self):
         stype = self.combobox.get()
         if self.subfield:
             return {"selection_type": stype, "value": self.subfield.get_value()}
@@ -649,22 +687,23 @@ class SubFormEntry(ConfigEntry):
     subconf -- config for internal form.
     use_scrollview -- should form use scrollable canvas?
     '''
-    def __init__(self,name,master,conf,color_index=0):
-        super().__init__(name,master,conf,color_index)
-        lab = tk.Label(self.frame,text=conf["display_name"], anchor='w')
+    def __init__(self,name,master,conf,color_index=0, protection=False):
+        super().__init__(name,master,conf,color_index, protection, lock_pos="t")
+        lab = tk.Label(self.content_frame,text=conf["display_name"], anchor='w')
         lab.pack(side="top",fill="x",expand=True)
         self.subconf = conf["subconf"]
         use_scrollview = False
         if "use_scrollview" in conf.keys():
             use_scrollview = conf["use_scrollview"]
-        self.subform = TkDictForm(self.frame, self.subconf, use_scrollview, color_index=color_index+1)
+        self.subform = TkDictForm(self.content_frame, self.subconf, use_scrollview, color_index=color_index+1,
+                                  protection=protection)
         self.subform.pack(side="bottom",fill="x",expand=True, padx=5)
         self.subform.on_commit = self.trigger_change
 
-    def set_value(self,newval):
+    def _set_value(self,newval):
         self.subform.set_values(newval)
 
-    def get_value(self):
+    def _get_value(self):
         return self.subform.get_values()
 
 FIELDTYPES["subform"] = [SubFormEntry,False]
@@ -678,7 +717,7 @@ class TkDictForm(tk.Frame):
     tk_form_configuration -- configuration. See help(ConfigEntry) for details.
     use_scrollview -- shoud we use scrollable canvas instead of just tkinter frame?
     '''
-    def __init__(self,master,tk_form_configuration,use_scrollview=True,color_index=0):
+    def __init__(self,master,tk_form_configuration,use_scrollview=True,color_index=0, protection=False):
         super(TkDictForm, self).__init__(master)
         self.color_index = color_index
         self.configure(index_to_style(color_index))
@@ -699,7 +738,7 @@ class TkDictForm(tk.Frame):
         for i in tk_form_configuration.keys():
             conf = tk_form_configuration[i]
             name = i
-            field = create_field(name, self.contents_tgt, conf, self.color_index, controller=self)
+            field = create_field(name, self.contents_tgt, conf, self.color_index, controller=self, protection=protection)
             self.fields[i] = field
 
     def get_values(self):
