@@ -629,7 +629,7 @@ class AlternatingEntry(ConfigEntry):
         if (stype in self.remembered_selections.keys()) and (self.subfield is not None):
             vset = self.remembered_selections[stype]
             if vset is not None:
-                print("Restoring", vset, "for", stype)
+                # print("Restoring", vset, "for", stype)
                 self.subfield.set_value(vset)
         self.trigger_change()
 
