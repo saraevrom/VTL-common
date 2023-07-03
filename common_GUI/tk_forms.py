@@ -98,7 +98,7 @@ class ConfigEntry(object):
 
     Some keys are unique to fields. See help(<Field type>Entry)
     '''
-    def __init__(self,name,master,conf,color_index=0, protection=False, lock_pos="r"):
+    def __init__(self,name,master,conf:dict,color_index=0, protection=False, lock_pos="r"):
         self.conf = conf
         self.name = name
         self._protection_enabled = protection
@@ -114,6 +114,8 @@ class ConfigEntry(object):
             pframe.pack(**lock_kwargs)
             lock = tk.Checkbutton(pframe, text="LOCK", variable=self._protection_var, anchor="w")
             lock.pack(fill="both", expand=True)
+            locked = conf.get("lock", False)
+            self._protection_var.set(int(locked))
         self.content_frame = tk.Frame(self.frame, **style1)
         self.content_frame.pack(**main_kwargs)
         self.controller_obj = None
@@ -124,8 +126,8 @@ class ConfigEntry(object):
     def _get_value(self):
         raise NotImplementedError("This method is not implemented")
 
-    def set_value(self, newval):
-        if not (self._protection_enabled and self._protection_var.get()):
+    def set_value(self, newval, force=False):
+        if force or not (self._protection_enabled and self._protection_var.get()):
             self._set_value(newval)
 
     def _set_value(self,newval):
@@ -420,7 +422,7 @@ def create_field(name,parent,conf, color_index=0,fill_entire=False, controller=N
     else:
         field.frame.pack(side="top", fill="x", expand=True)
     if "default" in conf.keys() or req_default:
-        field.set_value(conf["default"])
+        field.set_value(conf["default"], force=True)
     return field
 
 class ArrayEntry(ConfigEntry):

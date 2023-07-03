@@ -12,6 +12,7 @@ class Node(object):
     FIELD_TYPE = "FIXME"
     DEFAULT_VALUE = None
     DISPLAY_NAME = "Generic"
+    LOCKED = False
 
     def parse_formdata(self, formdata):
         raise NotImplementedError()
@@ -27,6 +28,7 @@ class Node(object):
         }
         if cls.DEFAULT_VALUE is not None:
             conf["default"] = cls.DEFAULT_VALUE
+        conf["lock"] = cls.LOCKED
         return conf
 
 
