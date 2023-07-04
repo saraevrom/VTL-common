@@ -754,7 +754,7 @@ class TkDictForm(tk.Frame):
                 res[i] = val
         return res
 
-    def set_values(self, values):
+    def set_values(self, values, force=False):
         '''
         Set fields by dictionary of values. Will set only present fields.
         '''
@@ -762,7 +762,7 @@ class TkDictForm(tk.Frame):
         #print("Requested values:",list(values.keys()))
         #print("Available values:",list(self.fields.keys()))
         for i in keys:
-            self.fields[i].set_value(values[i])
+            self.fields[i].set_value(values[i], force=force)
 
     def trigger_change(self):
         if self.on_commit:
