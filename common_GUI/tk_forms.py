@@ -128,9 +128,9 @@ class ConfigEntry(object):
 
     def set_value(self, newval, force=False):
         if force or not (self._protection_enabled and self._protection_var.get()):
-            self._set_value(newval)
+            self._set_value(newval, force)
 
-    def _set_value(self,newval):
+    def _set_value(self,newval, force=False):
         raise NotImplementedError("This method is not implemented")
 
     def keep_none(self):
@@ -167,7 +167,7 @@ class StringEntry(ConfigEntry):
         self.textvar = tk.StringVar(master)
         EntryWithEnterKey(self.frame,textvar=self.textvar).pack(side="left",fill="both")
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         self.textvar.set(newval)
 
     def _get_value(self):
@@ -191,7 +191,7 @@ class LabelEntry(ConfigEntry):
             label = tk.Label(self.content_frame, text=conf["display_name"], anchor="center")
         label.pack(side="left", fill="both", expand=True)
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         pass
 
     def _get_value(self):
@@ -228,7 +228,7 @@ class IntEntry(ConfigEntry):
         except:
             var.set(self.old_value)
 
-    def _set_value(self, newval):
+    def _set_value(self, newval, force=False):
         self.textvar.set(str(newval))
         self.old_value = newval
 
@@ -268,7 +268,7 @@ class FloatEntry(ConfigEntry):
         except:
             var.set(self.old_value)
 
-    def _set_value(self, newval):
+    def _set_value(self, newval, force=False):
         self.textvar.set(str(newval))
 
     def _get_value(self):
@@ -297,7 +297,7 @@ class CheckmarkEntry(ConfigEntry):
 
 
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         self.intvar.set(int(newval))
 
     def _get_value(self):
@@ -341,7 +341,7 @@ class FileEntry(ConfigEntry):
         #top.grab_set()
         top.lift()
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         if newval:
             self.stringvar.set(os.path.relpath(newval,self.conf["initialdir"]))
         else:
@@ -369,7 +369,7 @@ class RadioEntry(ConfigEntry):
             tk.Radiobutton(self.content_frame,text=val,value=ind,variable=self.intvar).grid(row=ind+1,column=1)
             ind+=1
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         self.intvar.set(self.conf["values"].index(newval))
 
     def _get_value(self):
@@ -395,7 +395,7 @@ class ComboEntry(ConfigEntry):
         self.combobox.bind("<Return>", self.on_trace)
         self.combobox.bind("<<ComboboxSelected>>", self.on_trace)
 
-    def _set_value(self, newval):
+    def _set_value(self, newval, force=False):
         self.combobox.set(newval)
 
     def _get_value(self):
@@ -515,7 +515,7 @@ class ArrayEntry(ConfigEntry):
             last.frame.destroy()
         self.trigger_change()
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         self.subfields.clear()
         for widget in self.subframe.winfo_children():
             widget.destroy()
@@ -561,14 +561,14 @@ class OptionEntry(ConfigEntry):
         self.trigger_change()
 
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         if newval is None:
             self.use_var.set(0)
             self.update_visibility()
         else:
             self.use_var.set(1)
             self.update_visibility()
-            self.subfield.set_value(newval)
+            self.subfield.set_value(newval, force=force)
 
     def _get_value(self):
         if self.use_var.get() != 0:
@@ -664,12 +664,12 @@ class AlternatingEntry(ConfigEntry):
         else:
             self.subframe.pack_forget()
 
-    def _set_value(self,newval):
+    def _set_value(self, newval, force=False):
         sel = newval["selection_type"]
         self.combobox.set(sel)
         self.select_field(self.valnames.index(sel))
         if "value" in newval.keys() and (self.subfield is not None):
-            self.subfield.set_value(newval["value"])
+            self.subfield.set_value(newval["value"], force=force)
 
     def _get_value(self):
         stype = self.combobox.get()
@@ -702,8 +702,8 @@ class SubFormEntry(ConfigEntry):
         self.subform.pack(side="bottom",fill="x",expand=True, padx=5)
         self.subform.on_commit = self.trigger_change
 
-    def _set_value(self,newval):
-        self.subform.set_values(newval)
+    def _set_value(self, newval, force=False):
+        self.subform.set_values(newval, force=force)
 
     def _get_value(self):
         return self.subform.get_values()
