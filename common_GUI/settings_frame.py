@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from .tk_forms import ScrollView as ScrollableFrame
+from .tk_forms import Validatable
 from .modified_base import EntryWithEnterKey, SpinboxWithEnterKey
-
 
 # This mess will be refactored
 
@@ -57,6 +57,7 @@ class Setting(tk.Frame):
             self.set_value(in_dict[self.setting_key])
 
 
+
 class EntryValue(Setting):
     def __init__(self, master, setting_key, initial_value, dtype=str, sensitive=False):
         super(EntryValue, self).__init__(master, setting_key, initial_value, sensitive=sensitive)
@@ -105,22 +106,14 @@ class CheckboxValue(Setting):
         self.entryvar.trace("w", callback)
 
 
-class RangeDoubleValue(Setting):
+class RangeDoubleValue(Setting, Validatable):
     def __init__(self, master, setting_key, initial_value, start, end, step=0.01, fmt="%.2f", sensitive=False):
         self.start = start
         self.end = end
         self.step = step
         self.fmt = fmt
-        self.old_value = 0.0
-        super(RangeDoubleValue, self).__init__(master, setting_key, initial_value,sensitive=sensitive)
-
-    def validate_value(self,var):
-        new_value = var.get()
-        try:
-            new_value == '' or float(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
+        Setting.__init__(self, master, setting_key, initial_value,sensitive=sensitive)
+        Validatable.__init__(self, float)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
@@ -133,7 +126,7 @@ class RangeDoubleValue(Setting):
         self.entry_field = SpinboxWithEnterKey(frame, from_=self.start, to=self.end, increment=self.step, format=self.fmt,
                                        wrap=True, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
-        self.entryvar.trace('w', lambda nm, idx, mode, var=self.entryvar: self.validate_value(var))
+        self.connect_validator(self.entryvar)
 
     def get_value(self):
         strval = self.entry_field.get()
@@ -157,22 +150,10 @@ class RangeDoubleValue(Setting):
         self.entry_field.set(str(value))
         self.old_value = str(value)
 
-
-
-
-class IntValue(Setting):
+class IntValue(Setting, Validatable):
     def __init__(self, master, setting_key, initial_value, sensitive=False):
-        self.old_value = 0
-        super(IntValue, self).__init__(master, setting_key, initial_value, sensitive=sensitive)
-
-
-    def validate_value(self,var):
-        new_value = var.get()
-        try:
-            new_value == '' or int(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
+        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
+        Validatable.__init__(self, int)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
@@ -184,7 +165,7 @@ class IntValue(Setting):
         self.entryvar = tk.StringVar(self)
         self.entry_field = EntryWithEnterKey(frame, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
-        self.entryvar.trace('w', lambda nm, idx, mode, var=self.entryvar: self.validate_value(var))
+        self.connect_validator(self.entryvar)
 
     def get_value(self):
         strval = self.entryvar.get()
@@ -202,19 +183,10 @@ class IntValue(Setting):
         self.old_value = self.entryvar.get()
 
 
-class DoubleValue(Setting):
+class DoubleValue(Setting, Validatable):
     def __init__(self, master, setting_key, initial_value, sensitive=False):
-        self.old_value = 0.0
-        super(DoubleValue, self).__init__(master, setting_key, initial_value, sensitive=sensitive)
-
-
-    def validate_value(self,var):
-        new_value = var.get()
-        try:
-            new_value == '' or float(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
+        Validatable.__init__(self, float)
+        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
@@ -226,7 +198,7 @@ class DoubleValue(Setting):
         self.entryvar = tk.StringVar(self)
         self.entry_field = EntryWithEnterKey(frame, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
-        self.entryvar.trace('w', lambda nm, idx, mode, var=self.entryvar: self.validate_value(var))
+        self.connect_validator(self.entryvar)
 
     def get_value(self):
         strval = self.entryvar.get()
@@ -244,20 +216,12 @@ class DoubleValue(Setting):
         self.old_value = self.entryvar.get()
 
 
-class RangeIntValue(Setting):
+class RangeIntValue(Setting, Validatable):
     def __init__(self, master, setting_key, initial_value, start, end, sensitive=False):
         self.start = start
         self.end = end
-        self.old_value = 0
-        super(RangeIntValue, self).__init__(master, setting_key, initial_value, sensitive=sensitive)
-
-    def validate_value(self,var):
-        new_value = var.get()
-        try:
-            new_value == '' or int(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
+        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
+        Validatable.__init__(self, int)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
@@ -270,7 +234,7 @@ class RangeIntValue(Setting):
         self.entry_field = SpinboxWithEnterKey(frame, from_=self.start, to=self.end,
                                        wrap=True, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
-        self.entryvar.trace('w', lambda nm, idx, mode, var=self.entryvar: self.validate_value(var))
+        self.connect_validator(self.entryvar)
 
     def set_limits(self, start, end):
         self.start = start

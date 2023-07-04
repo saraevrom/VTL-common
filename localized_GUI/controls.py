@@ -4,11 +4,12 @@ from ..localization import get_locale
 import json
 
 class TkFormControlPanel(tk.Frame):
-    def __init__(self,master, file_asker=None):
+    def __init__(self, master, file_asker=None,
+                 save_label="app.filedialog.save_settings.title", load_label="app.filedialog.load_settings.title"):
         super().__init__(master)
-        btn1 = tk.Button(self, text=get_locale("app.filedialog.load_settings.title"), command=self.on_load)
+        btn1 = tk.Button(self, text=get_locale(load_label), command=self.on_load)
         btn1.pack(side="left", fill="x", expand=True)
-        btn2 = tk.Button(self, text=get_locale("app.filedialog.save_settings.title"), command=self.on_save)
+        btn2 = tk.Button(self, text=get_locale(save_label), command=self.on_save)
         btn2.pack(side="right", fill="x", expand=True)
         self.connected_form = None
         if file_asker is None:

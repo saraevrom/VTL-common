@@ -59,6 +59,26 @@ class ScrollView(ttk.Frame):
             self.canvas.itemconfig(self.drawn_window_id, width=400)
 
 
+class Validatable(object):
+    def __init__(self, v_class):
+        self.v_class = v_class
+        self.old_value = 0
+
+    def validate_value(self, var):
+        new_value = var.get()
+        try:
+            if new_value == "-":
+                new_value = "0"
+            new_value == '' or self.v_class(new_value)
+            self.old_value = new_value
+        except:
+            var.set(self.old_value)
+
+    def connect_validator(self, entryvar):
+        entryvar.trace('w', lambda nm, idx, mode, var=entryvar: self.validate_value(var))
+
+
+
 def index_to_color(color_index):
     if color_index % 2 == 0:
         color = "#AAAAAA"
@@ -203,7 +223,7 @@ class LabelEntry(ConfigEntry):
     def get_frame(self):
         return self.frame
 
-class IntEntry(ConfigEntry):
+class IntEntry(ConfigEntry, Validatable):
     '''
     Enter an integer
 
@@ -211,22 +231,14 @@ class IntEntry(ConfigEntry):
     No unique keys
     '''
     def __init__(self,name,master,conf,color_index=0, protection=False):
-        super().__init__(name,master,conf,color_index, protection)
+        ConfigEntry.__init__(self, name, master, conf, color_index, protection)
+        Validatable.__init__(self, int)
         tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(self.content_frame)
-        self.textvar.trace('w', lambda nm, idx, mode, var=self.textvar: self.validate_value(var))
+        self.connect_validator(self.textvar)
         integer_entry = EntryWithEnterKey(self.content_frame, textvar=self.textvar)
         integer_entry.pack(side="left",fill="both")
         integer_entry.on_commit = self.trigger_change
-        self.old_value = 0
-
-    def validate_value(self, var):
-        new_value = var.get()
-        try:
-            new_value == '' or int(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
 
     def _set_value(self, newval, force=False):
         self.textvar.set(str(newval))
@@ -243,7 +255,7 @@ class IntEntry(ConfigEntry):
         except ValueError:
             raise EntryInvalidException(self.name,"Could not convert \"{}\" to integer".format(sval))
 
-class FloatEntry(ConfigEntry):
+class FloatEntry(ConfigEntry, Validatable):
     '''
     Enter a float
 
@@ -251,22 +263,15 @@ class FloatEntry(ConfigEntry):
     No unique keys
     '''
     def __init__(self,name,master,conf,color_index=0, protection=False):
-        super().__init__(name,master,conf,color_index, protection)
+        ConfigEntry.__init__(self,name,master,conf,color_index, protection)
+        Validatable.__init__(self, float)
         tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
         float_entry = EntryWithEnterKey(self.content_frame,textvar=self.textvar)
         float_entry.pack(side="left",fill="both")
         float_entry.on_commit = self.trigger_change
-        self.old_value = 0
-        self.textvar.trace('w', lambda nm, idx, mode, var=self.textvar: self.validate_value(var))
+        self.connect_validator(self.textvar)
 
-    def validate_value(self, var):
-        new_value = var.get()
-        try:
-            new_value == '' or float(new_value)
-            self.old_value = new_value
-        except:
-            var.set(self.old_value)
 
     def _set_value(self, newval, force=False):
         self.textvar.set(str(newval))
