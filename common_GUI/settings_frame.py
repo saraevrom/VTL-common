@@ -366,7 +366,9 @@ class SettingMenu(ScrollableFrame):
             self.commit_btn = ttk.Button(self, text="ОК", command=self.on_commit)
             self.commit_btn.grid(row=2, column=0, sticky="ew", columnspan=2)
         self.commit_action = None
-        self.change_notify = dict()
+        #self.change_notify = dict()
+        self._notify_en = True
+        self.change_schedule = list()
         self.change_callbacks = dict()
 
 
@@ -374,7 +376,9 @@ class SettingMenu(ScrollableFrame):
         self.on_commit()
 
     def notify_change(self, key):
-        self.change_notify[key] = True
+        if self._notify_en:
+            self.change_schedule.append(key)
+        # self.change_notify[key] = True
 
     def add_tracer(self, key, callback):
         for s in self.user_settings:
@@ -383,7 +387,7 @@ class SettingMenu(ScrollableFrame):
                 def caller(*args):
                     self.notify_change(key)
                 s.add_tracer(caller)
-                self.change_notify[key] = False
+                # self.change_notify[key] = False
                 self.change_callbacks[key] = callback
                 break
 
@@ -425,10 +429,16 @@ class SettingMenu(ScrollableFrame):
             s: Setting
             s.set_dict_value(out_settings_dict)
 
-        for k in self.change_notify.keys():
-            if self.change_notify[k]:
-                self.change_callbacks[k]()
-                self.change_notify[k] = False
+        self._notify_en = False
+        while self.change_schedule:
+            k = self.change_schedule.pop(0)
+            self.change_callbacks[k]()
+        self._notify_en = True
+
+        # for k in self.change_notify.keys():
+        #     if self.change_notify[k]:
+        #         self.change_callbacks[k]()
+        #         self.change_notify[k] = False
 
 
     def pull_settings_dict(self,in_settings_dict: dict, custom_keys = None):
