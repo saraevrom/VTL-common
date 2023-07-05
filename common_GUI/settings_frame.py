@@ -370,6 +370,7 @@ class SettingMenu(ScrollableFrame):
         newsetting.grid(row=newrow, column=1, sticky="ew")
         if self.autocommiting:
             newsetting.add_on_edit_end_callback(self.autocommit_tracer)
+        return newsetting
 
     def add_separator(self,display_name):
         newrow = self.get_new_row()
