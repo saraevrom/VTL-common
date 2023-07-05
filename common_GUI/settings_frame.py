@@ -56,7 +56,20 @@ class Setting(tk.Frame):
         if self.setting_key in in_dict.keys():
             self.set_value(in_dict[self.setting_key])
 
+class CallbackFocusOutBind(Setting):
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self._callbacks = []
 
+    def bind_focus(self, field):
+        field.bind("<FocusOut>", self.on_focus_out)
+
+    def on_focus_out(self, *args):
+        for callback in self._callbacks:
+            callback()
+
+    def add_on_edit_end_callback_nosensitive(self, callback):
+        self._callbacks.append(callback)
 
 class EntryValue(Setting):
     def __init__(self, master, setting_key, initial_value, dtype=str, sensitive=False):
@@ -106,20 +119,17 @@ class CheckboxValue(Setting):
         self.entryvar.trace("w", callback)
 
 
-class RangeDoubleValue(Setting, Validatable):
+class RangeDoubleValue( Validatable, CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, start, end, step=0.01, fmt="%.2f", sensitive=False):
         self.start = start
         self.end = end
         self.step = step
         self.fmt = fmt
-        Setting.__init__(self, master, setting_key, initial_value,sensitive=sensitive)
+        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value,sensitive=sensitive)
         Validatable.__init__(self, float)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
-
-    def add_on_edit_end_callback_nosensitive(self, callback):
-        self.entry_field.bind("<FocusOut>", callback)
 
     def build_setting(self, frame):
         self.entryvar = tk.StringVar(self)
@@ -127,6 +137,7 @@ class RangeDoubleValue(Setting, Validatable):
                                        wrap=True, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
         self.connect_validator(self.entryvar)
+        self.bind_focus(self.entry_field)
 
     def get_value(self):
         strval = self.entry_field.get()
@@ -150,22 +161,22 @@ class RangeDoubleValue(Setting, Validatable):
         self.entry_field.set(str(value))
         self.old_value = str(value)
 
-class IntValue(Setting, Validatable):
+
+class IntValue(Validatable, CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, sensitive=False):
-        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
+        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
         Validatable.__init__(self, int)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
-
-    def add_on_edit_end_callback_nosensitive(self, callback):
-        self.entry_field.bind("<FocusOut>", callback)
 
     def build_setting(self, frame):
         self.entryvar = tk.StringVar(self)
         self.entry_field = EntryWithEnterKey(frame, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
         self.connect_validator(self.entryvar)
+        self.bind_focus(self.entry_field)
+
 
     def get_value(self):
         strval = self.entryvar.get()
@@ -183,22 +194,21 @@ class IntValue(Setting, Validatable):
         self.old_value = self.entryvar.get()
 
 
-class DoubleValue(Setting, Validatable):
+class DoubleValue(Validatable, CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, sensitive=False):
         Validatable.__init__(self, float)
-        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
+        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
 
-    def add_on_edit_end_callback_nosensitive(self, callback):
-        self.entry_field.bind("<FocusOut>", callback)
 
     def build_setting(self, frame):
         self.entryvar = tk.StringVar(self)
         self.entry_field = EntryWithEnterKey(frame, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
         self.connect_validator(self.entryvar)
+        self.bind_focus(self.entry_field)
 
     def get_value(self):
         strval = self.entryvar.get()
@@ -216,18 +226,15 @@ class DoubleValue(Setting, Validatable):
         self.old_value = self.entryvar.get()
 
 
-class RangeIntValue(Setting, Validatable):
+class RangeIntValue(Validatable, CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, start, end, sensitive=False):
         self.start = start
         self.end = end
-        Setting.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
+        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
         Validatable.__init__(self, int)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
-
-    def add_on_edit_end_callback_nosensitive(self, callback):
-        self.entry_field.bind("<FocusOut>", callback)
 
     def build_setting(self, frame):
         self.entryvar = tk.StringVar(self)
@@ -235,6 +242,7 @@ class RangeIntValue(Setting, Validatable):
                                        wrap=True, textvariable=self.entryvar)
         self.entry_field.pack(fill=tk.BOTH, expand=True)
         self.connect_validator(self.entryvar)
+        self.bind_focus(self.entry_field)
 
     def set_limits(self, start, end):
         self.start = start
@@ -335,8 +343,14 @@ class SettingMenu(ScrollableFrame):
         self.change_schedule = list()
         self.change_callbacks = dict()
 
+    def notify_enable(self):
+        self._notify_en = True
 
-    def autocommit_tracer(self,*args):
+    def notify_disable(self):
+        self._notify_en = False
+
+
+    def autocommit_tracer(self, *args):
         self.on_commit()
 
     def notify_change(self, key):

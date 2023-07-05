@@ -67,7 +67,7 @@ class Validatable(object):
     def validate_value(self, var):
         new_value = var.get()
         try:
-            if new_value == "-":
+            if new_value == "-" or (new_value == "." and self.v_class == float):
                 new_value = "0"
             new_value == '' or self.v_class(new_value)
             self.old_value = new_value
@@ -268,7 +268,7 @@ class FloatEntry(ConfigEntry, Validatable):
         tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
         float_entry = EntryWithEnterKey(self.content_frame,textvar=self.textvar)
-        float_entry.pack(side="left",fill="both")
+        float_entry.pack(side="left", fill="both")
         float_entry.on_commit = self.trigger_change
         self.connect_validator(self.textvar)
 
@@ -279,7 +279,9 @@ class FloatEntry(ConfigEntry, Validatable):
     def _get_value(self):
         sval = self.textvar.get()
         try:
-            if sval:
+            if sval == ".":
+                val = 0.0
+            elif sval:
                 val = float(sval)
             else:
                 val = 0.0
