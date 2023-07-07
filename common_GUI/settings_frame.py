@@ -164,8 +164,8 @@ class RangeDoubleValue( Validatable, CallbackFocusOutBind):
 
 class IntValue(Validatable, CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, sensitive=False):
-        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
         Validatable.__init__(self, int)
+        CallbackFocusOutBind.__init__(self, master, setting_key, initial_value, sensitive=sensitive)
 
     def add_tracer(self, callback):
         self.entryvar.trace("w", callback)
