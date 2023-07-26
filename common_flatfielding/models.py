@@ -2,6 +2,7 @@ import numpy as np
 import json
 
 from scipy.special import lambertw
+from .matrix_interpolation import interpolate_matrix
 
 class FlatFieldingModel(object):
     subclass_dict = None
@@ -219,19 +220,27 @@ class NonlinearSaturation(FlatFieldingModel):
 
 
 class NonlinearPileup(FlatFieldingModel):
-    def __init__(self, sensitivity=None, divider=None, prescaler=None):
+    def __init__(self, sensitivity=None, divider=None, prescaler=None, offset=None):
         super().__init__()
         self.sensitivity = sensitivity
         self.divider = divider
         self.prescaler = prescaler
+        self.offset = offset
 
     def get_data(self):
         self.get_broken()
+        if self.offset is None:
+            off = 0.0
+        elif isinstance(self.offset, float):
+            off = self.offset
+        else:
+            off = self.offset.tolist()
         return {
             "sensitivity": self.sensitivity.tolist(),
             "divider": self.divider.tolist(),
             "prescaler": self.prescaler,
-            "broken": self.broken_pixels.tolist()
+            "broken": self.broken_pixels.tolist(),
+            "offset": off
         }
 
     def set_data(self, x_data):
@@ -239,6 +248,10 @@ class NonlinearPileup(FlatFieldingModel):
         self.divider = np.array(x_data["divider"])
         self.broken_pixels = np.array(x_data["broken"])
         self.prescaler = x_data["prescaler"]
+        if "offset" in x_data.keys():
+            self.offset = np.array(x_data["offset"])
+        else:
+            self.offset = np.zeros(self.divider.shape)
 
     def display_parameter_1(self):
         return "flatfielder.sensitivity.title", self.sensitivity
@@ -252,7 +265,7 @@ class NonlinearPileup(FlatFieldingModel):
         pixels_clip = np.clip(pixel_data, a_min=0, a_max=upper_clamp)
         pre = -self.divider / self.sensitivity * lambertw(-pixels_clip / self.divider).real
         pre = np.nan_to_num(pre)
-        return pre
+        return pre+self.offset
 
     def evaluate_single(self, single_data_in, i, j):
         single_data = single_data_in*self.prescaler
@@ -262,10 +275,10 @@ class NonlinearPileup(FlatFieldingModel):
         clip = np.clip(single_data, a_min=0, a_max=upper_clamp)
         pre = -divider / sens * lambertw(-clip / divider, 0).real
         pre = np.nan_to_num(pre)
-        return pre
+        return pre+self.offset[i,j]
 
     def get_broken_auto(self):
-        return self.sensitivity <= 0
+        return np.logical_or(self.sensitivity <= 0, self.divider == 0)
 
 
 class Chain(FlatFieldingModel):
@@ -346,3 +359,34 @@ class Chain(FlatFieldingModel):
             return self.models[-1].display_parameter_2()
         else:
             return super().display_parameter_2()
+
+class Interpolative(FlatFieldingModel):
+    def __init__(self, x_frames=None, y_frames=None):
+        super().__init__()
+        self.x_frames = x_frames
+        self.y_frames = y_frames
+
+    def get_data(self):
+        self.get_broken()
+        return {
+            "x_frames": self.x_frames.tolist(),
+            "y_frames": self.y_frames.tolist(),
+            "broken": self.broken_pixels.tolist(),
+        }
+
+    def set_data(self, x_data):
+        self.x_frames = np.array(x_data["x_frames"])
+        self.y_frames = np.array(x_data["y_frames"])
+        self.broken_pixels = np.array(x_data["broken"])
+
+    def evaluate(self, pixel_data):
+        return interpolate_matrix(pixel_data,self.x_frames, self.y_frames)
+
+    def evaluate_single(self, pixel_data, i, j):
+        xf = self.x_frames[:,i,j]
+        yf = self.y_frames[:,i,j]
+        return np.interp(pixel_data,xf,yf)
+
+    def get_broken_auto(self):
+        maxes = np.max(self.x_frames, axis=0)
+        return maxes<=1e-6
