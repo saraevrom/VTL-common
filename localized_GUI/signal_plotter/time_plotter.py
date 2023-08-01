@@ -211,9 +211,22 @@ class MainPlotter(Plotter):
                                                dy=0)
 
             dx = abs(self.__start_x - self.__end_x)
+            i1 = int(self.__start_x)
+            i2 = int(self.__end_x)
+            if i1 > i2:
+                i1, i2 = i2 , i1
             middle_x = (self.__start_x + self.__end_x)/2
+            txt = SCALE_FLOATING_POINT_FORMAT.format(dx)
             #self.__display_dt_annotation.set_position((middle_x, middle_y))
-            self.__display_dt_annotation.set_text(SCALE_FLOATING_POINT_FORMAT.format(dx))
+            if 0 <= i2 < self.display_data.shape[0]:
+                frag = self.display_data[i1:i2, self.display_matrix]
+                if frag.size > 0:
+                    txt = txt + "\n"
+                    mean = np.mean(frag)
+                    std = np.std(frag)
+                    txt += f"mean={SCALE_FLOATING_POINT_FORMAT.format(mean)}\n"
+                    txt += f"std={SCALE_FLOATING_POINT_FORMAT.format(std)}"
+            self.__display_dt_annotation.set_text(txt)
 
         self.draw()
 
