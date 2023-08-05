@@ -66,6 +66,19 @@ class ChoosablePlotter(tk.Toplevel):
         self.settings_menu.pack(side="bottom",fill="x")
 
         self.settings_menu.push_settings_dict(self.settings_dict)
+        self.bind("<Configure>", self.on_size_changed)
+        self.changed_size_flag = False
+
+
+    def on_size_changed(self, event):
+        self.changed_size_flag = True
+        self.after(1000, self._on_size_change)
+
+
+    def _on_size_change(self):
+        if self.changed_size_flag:
+            self.plotter.tight_layout()
+            self.changed_size_flag = False
 
     def on_xscale_change(self,*args):
         if self.xscale_var.get():
@@ -90,6 +103,10 @@ class ChoosablePlotter(tk.Toplevel):
         self.plotter.use_mean = self.settings_dict["lightcurve_mean"]
         self.plotter.flatten_ma = self.settings_dict["lightcurve_ma"]
         self.on_lmb(-1,-1)
+        self.plotter.axes.set_title(self.settings_dict["title"])
+        self.plotter.axes.set_xlabel(self.settings_dict["x_label"])
+        self.plotter.axes.set_ylabel(self.settings_dict["y_label"])
+        self.plotter.tight_layout()
         self.plotter.draw()
 
     def on_active_select(self):

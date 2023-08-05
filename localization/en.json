@@ -36,6 +36,9 @@
   "app.popup_plot.detect_active": "Select active pixels",
   "app.popup_plot.show_pixels": "Show pixels",
   "app.popup_plot.pixel_map": "Pixel map",
+  "app.popup_plot.title": "Plot title",
+  "app.popup_plot.x_label": "X axis label",
+  "app.popup_plot.y_label": "Y axis label",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",

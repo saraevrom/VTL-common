@@ -71,9 +71,9 @@ class CallbackFocusOutBind(Setting):
     def add_on_edit_end_callback_nosensitive(self, callback):
         self._callbacks.append(callback)
 
-class EntryValue(Setting):
+class EntryValue(CallbackFocusOutBind):
     def __init__(self, master, setting_key, initial_value, dtype=str, sensitive=False):
-        super(EntryValue, self).__init__(master, setting_key, initial_value, sensitive=sensitive)
+        super().__init__(master, setting_key, initial_value, sensitive=sensitive)
         self.dtype = dtype
 
     def add_tracer(self, callback):
@@ -84,6 +84,7 @@ class EntryValue(Setting):
         self.entryvar.set(str(self.initial_value))
         entry = EntryWithEnterKey(frame, textvariable=self.entryvar)
         entry.pack(fill=tk.BOTH, expand=True)
+        self.bind_focus(entry)
 
 
     def get_value(self):

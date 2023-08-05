@@ -25,7 +25,7 @@ class Plotter(ttk.Frame):
     def __init__(self, master, polar=False, *args, **kwargs):
         super(Plotter, self).__init__(master, *args, **kwargs)
         self.figure: Figure
-        self.figure = Figure(figsize=(5, 4), dpi=100)
+        self.figure = Figure(figsize=(5, 5), dpi=100)
         self.axes: Axes
         self.axes = self.figure.add_subplot(1, 1, 1, polar=polar)
 
@@ -43,10 +43,63 @@ class Plotter(ttk.Frame):
         #self.figure.canvas.flush_events()
         self.mpl_canvas.draw()
 
+class GridView(object):
+    def __init__(self, axes, initcolor="blue"):
+        self._grid_axes = axes
+        span = HALF_PIXELS*PIXEL_SIZE+HALF_GAP_SIZE
+        self._grid_axes.set_xlim(-span, span)
+        self._grid_axes.set_ylim(-span, span)
+        self._grid_axes.set_box_aspect(1)
 
-class GridPlotter(Plotter):
+        self.patches = []
+        for y in LOWER_EDGES:
+            row = []
+            for x in LOWER_EDGES:
+                rect = Rectangle((x, y), PIXEL_SIZE, PIXEL_SIZE, color=initcolor)
+                self._grid_axes.add_patch(rect)
+                row.append(rect)
+            self.patches.append(row)
+        self._grid_axes.vlines(LOWER_EDGES, -span, -HALF_GAP_SIZE, colors="black")
+        self._grid_axes.vlines(LOWER_EDGES, span, HALF_GAP_SIZE, colors="black")
+        self._grid_axes.vlines([-HALF_GAP_SIZE, span], -span, -HALF_GAP_SIZE, colors="black")
+        self._grid_axes.vlines([-HALF_GAP_SIZE, span], span, HALF_GAP_SIZE, colors="black")
+        self._grid_axes.hlines(LOWER_EDGES, -span, -HALF_GAP_SIZE, colors="black")
+        self._grid_axes.hlines(LOWER_EDGES, span, HALF_GAP_SIZE, colors="black")
+        self._grid_axes.hlines([-HALF_GAP_SIZE, span], -span, -HALF_GAP_SIZE, colors="black")
+        self._grid_axes.hlines([-HALF_GAP_SIZE, span], span, HALF_GAP_SIZE, colors="black")
+
+    def set_colors(self, color_mat):
+        for j in range(2 * HALF_PIXELS):
+            for i in range(2 * HALF_PIXELS):
+                self.set_pixel_color(j,i,color_mat[i,j])
+
+    def set_pixel_color(self,j,i, color):
+        self.patches[j][i].set_color(color)
+
+
+class GridPlotter(Plotter, GridView):
     def __init__(self, master, norm=None, enable_scale_configuration=True, bright=False, enable_pixel_dclick=True, *args, **kwargs):
-        super(GridPlotter, self).__init__(master, *args, **kwargs)
+        Plotter.__init__(self,master, *args, **kwargs)
+        GridView.__init__(self, self.axes)
+        self.use_autoscale_var = tk.IntVar(self)
+        self.use_autoscale_var.set(1)
+        self.use_autoscale_var.trace("w", self.on_scale_change_commit)
+
+        self.min_norm_entry = tk.StringVar(self)
+        self.max_norm_entry = tk.StringVar(self)
+
+        self.on_left_click_callback = None
+        self.on_right_click_callback = None
+        self.on_right_click_callback_outofbounds = None
+
+        self.colorbar = None
+        self.buffer_matrix = np.zeros((2*HALF_PIXELS, 2*HALF_PIXELS))
+        self.alive_pixels_matrix = np.ones([2 * HALF_PIXELS, 2 * HALF_PIXELS]).astype(bool)
+        self.highlight_pixels_matrix = np.zeros([2 * HALF_PIXELS, 2 * HALF_PIXELS]).astype(bool)
+
+        self.enable_scale_configuration = enable_scale_configuration
+        self.bright = bright
+        self.norm = norm
         self.use_autoscale_var = tk.IntVar(self)
         self.use_autoscale_var.set(1)
         self.use_autoscale_var.trace("w", self.on_scale_change_commit)
@@ -61,32 +114,12 @@ class GridPlotter(Plotter):
         self.bright = bright
 
         self.colorbar = None
-        span = HALF_PIXELS*PIXEL_SIZE+HALF_GAP_SIZE
-        self.axes.set_xlim(-span, span)
-        self.axes.set_ylim(-span, span)
-        self.axes.set_box_aspect(1)
 
         self.buffer_matrix = np.zeros((16, 16))
         self.alive_pixels_matrix = np.ones([2*HALF_PIXELS, 2*HALF_PIXELS]).astype(bool)
         self.highlight_pixels_matrix = np.zeros([2*HALF_PIXELS, 2*HALF_PIXELS]).astype(bool)
-        self.patches = []
-        for y in LOWER_EDGES:
-            row = []
-            for x in LOWER_EDGES:
-                rect = Rectangle((x, y), PIXEL_SIZE, PIXEL_SIZE, color="blue")
-                self.axes.add_patch(rect)
-                row.append(rect)
-            self.patches.append(row)
-        self.norm = norm
-        self.update_matrix_plot(True)
-        self.axes.vlines(LOWER_EDGES, -span, -HALF_GAP_SIZE, colors="black")
-        self.axes.vlines(LOWER_EDGES, span, HALF_GAP_SIZE, colors="black")
-        self.axes.vlines([-HALF_GAP_SIZE, span], -span, -HALF_GAP_SIZE, colors="black")
-        self.axes.vlines([-HALF_GAP_SIZE, span], span, HALF_GAP_SIZE, colors="black")
-        self.axes.hlines(LOWER_EDGES, -span, -HALF_GAP_SIZE, colors="black")
-        self.axes.hlines(LOWER_EDGES, span, HALF_GAP_SIZE, colors="black")
-        self.axes.hlines([-HALF_GAP_SIZE, span], -span, -HALF_GAP_SIZE, colors="black")
-        self.axes.hlines([-HALF_GAP_SIZE, span], span, HALF_GAP_SIZE, colors="black")
+
+
         self.figure.canvas.mpl_connect("button_press_event", self.on_plot_click)
         self.figure.canvas.mpl_connect("motion_notify_event", self.on_hover)
         self.figure.canvas.mpl_connect("axes_leave_event", self.on_leave)
@@ -116,6 +149,7 @@ class GridPlotter(Plotter):
         self.annotation.set_visible(False)
         self._last_alive = None
         self.enable_pixel_dclick = enable_pixel_dclick
+        self.update_matrix_plot(True)
 
     def on_scale_change_commit(self, *args):
         self.update_matrix_plot(True)
@@ -195,11 +229,11 @@ class GridPlotter(Plotter):
             for j in range(2*HALF_PIXELS):
                 for i in range(2*HALF_PIXELS):
                     if self.highlight_pixels_matrix[i, j]:
-                        self.patches[j][i].set_color(PLOT_HIGHLIGHT_COLOR)
+                        self.set_pixel_color(j,i,PLOT_HIGHLIGHT_COLOR)
                     elif self.alive_pixels_matrix[i, j]:
-                        self.patches[j][i].set_color(PLOT_COLORMAP(self.norm(self.buffer_matrix[i, j])))
+                        self.set_pixel_color(j,i,PLOT_COLORMAP(self.norm(self.buffer_matrix[i, j])))
                     else:
-                        self.patches[j][i].set_color(PLOT_BROKEN_COLOR)
+                        self.set_pixel_color(j, i, PLOT_BROKEN_COLOR)
         # print("Draw end:", time.time()-start_time)
 
     def set_broken(self, broken):

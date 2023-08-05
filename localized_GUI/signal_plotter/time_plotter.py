@@ -1,13 +1,18 @@
+import contextlib
+import io
+import logging
+import warnings
+
 import numpy.random as rng
 import numpy as np
+import numba as nb
 from .binsearch import binsearch_tgt
 from ..plotter import Plotter
 
 from ...utilities import set_vlines_position, set_vlines_position_ylims
 
-from ...parameters import SCALE_FLOATING_POINT_FORMAT
-import numba as nb
-
+from ...parameters import SCALE_FLOATING_POINT_FORMAT, HALF_PIXELS
+from .grid_display import get_color, AltLegendView
 
 @nb.njit(cache=True)
 def window_limiting(index, window, target_length):
@@ -30,71 +35,22 @@ def moving_average(src, win):
         res[i] = np.mean(src[start:end])
     return res
 
-
-@nb.njit()
-def hsv_to_rgb(h,s,v):
-    '''
-    0<=h<=360
-    0<=s<=1
-    0<=v<=1
-    '''
-    h = h % 360
-    c = v*s
-    x = c*(1-abs((h/60)%2-1))
-    m = v-c
-    if h<60:
-        _r = c
-        _g = x
-        _b = 0
-    elif h<120:
-        _r = x
-        _g = c
-        _b = 0
-    elif h<180:
-        _r = 0
-        _g = c
-        _b = x
-    elif h<240:
-        _r = 0
-        _g = x
-        _b = c
-    elif h<300:
-        _r = x
-        _g = 0
-        _b = c
-    else:
-        _r = c
-        _g = 0
-        _b = x
-    return _r+m, _g+m, _b+m
+WIDTH = 2*HALF_PIXELS
+HEIGHT = 2*HALF_PIXELS
 
 
+LEGEND_PARAMS = dict(loc='upper right')
+MPL_LOGGER = logging.getLogger("matplotlib")
 
-def generate_color_part(generator,l,h):
-    return generator.random()*(h-l)+l
-
-def generate_color(generator):
-    h = generate_color_part(generator,0.0,360.0)
-    s = generate_color_part(generator,0.8,1.0)
-    v = generate_color_part(generator,0.5,1.0)
-    #roundval = generator.random()*2*np.pi
-    # r = (np.cos(roundval)+1)/2
-    # g = (np.cos(roundval+2*np.pi/3)+1)/2
-    # b = (np.cos(roundval+4*np.pi/3)+1)/2
-    return hsv_to_rgb(h,s,v)
-
-LEGEND_PARAMS = dict(loc='upper left', bbox_to_anchor=(1.05, 1),
-              ncol=2, borderaxespad=0)
 
 class MainPlotter(Plotter):
     def __init__(self, master, x_plot, display_data):
         super().__init__(master)
-        gen = rng.default_rng(42)
         self.lines = []
-        for i in range(16):
+        for i in range(WIDTH):
             line_row = []
-            for j in range(16):
-                line, = self.axes.plot(x_plot, display_data[:,i,j], c=generate_color(gen), label="_hidden")
+            for j in range(HEIGHT):
+                line, = self.axes.plot(x_plot, display_data[:,i,j], c=get_color(i,j), label="_hidden")
                 line.set_visible(False)
                 line_row.append(line)
             self.lines.append(line_row)
@@ -106,8 +62,7 @@ class MainPlotter(Plotter):
         self.accumulated.set_visible(False)
         box = self.axes.get_position()
         self.axes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        self.axes.legend(loc='upper left', bbox_to_anchor=(1.05, 1),
-              ncol=2, borderaxespad=0)
+        self.legend()
         self.draw()
         self._accumulation_mode = "Off"
         self.display_matrix = np.full(fill_value=False, shape=(16,16))
@@ -129,17 +84,38 @@ class MainPlotter(Plotter):
         self.__arrow = self.axes.arrow(lowx,lowy,0,0)
         self.__arrow.set_visible(False)
         self.__display_dt_annotation = self.axes.annotate("0", (0,0), xytext=(10,10),
-                                                          xycoords="figure pixels",textcoords="offset pixels")
+                                                          xycoords="axes pixels",textcoords="offset pixels")
+        self.altlegend = AltLegendView(self)
+        self.tight_layout()
+
+    def legend(self):
+        MPL_LOGGER.setLevel(logging.ERROR)
+        with contextlib.redirect_stdout(io.StringIO()) as f:
+            legend = self.axes.legend(**LEGEND_PARAMS)
+
+        MPL_LOGGER.setLevel(logging.WARNING)
+        # if not legend.legendHandles:
+        #     legend.remove()
+
+    def tight_layout(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.figure.tight_layout()
+        self.altlegend.update_view()
+        self.draw()
+
 
     def set_visibility(self, matrix):
         for i in range(16):
             for j in range(16):
                 self.lines[i][j].set_visible(matrix[i,j])
-                if matrix[i,j]:
-                    self.lines[i][j].set_label(f"[{i + 1}, {j + 1}]")
-                else:
-                    self.lines[i][j].set_label("_hidden")
-        self.axes.legend(**LEGEND_PARAMS)
+                # if matrix[i,j]:
+                #     self.lines[i][j].set_label(f"[{i + 1}, {j + 1}]")
+                # else:
+                #     self.lines[i][j].set_label("_hidden")
+        self.altlegend.set_alive(matrix)
+        self.legend()
+        self.tight_layout()
         self.display_matrix = matrix
         self.draw()
 
