@@ -13,6 +13,7 @@ from ...utilities import set_vlines_position, set_vlines_position_ylims
 
 from ...parameters import SCALE_FLOATING_POINT_FORMAT, HALF_PIXELS
 from .grid_display import get_color, AltLegendView
+from .style_dialog import StyleDialog
 
 @nb.njit(cache=True)
 def window_limiting(index, window, target_length):
@@ -69,10 +70,13 @@ class MainPlotter(Plotter):
         self.figure.canvas.mpl_connect('button_press_event', self.on_button_press_event)
         self.figure.canvas.mpl_connect('motion_notify_event', self.on_hover_event)
         self.figure.canvas.mpl_connect('figure_leave_event', self.on_mouse_leave)
+        self.figure.canvas.mpl_connect('pick_event', self.onpick)
 
         self.__right_hold = False
         self.__start_x = 0
         self.__end_x = 0
+        self._legend = None
+
         self.axis_x_data = x_plot
         lowx = np.min(x_plot)
         lowy = np.min(display_data)
@@ -85,17 +89,36 @@ class MainPlotter(Plotter):
         self.__arrow.set_visible(False)
         self.__display_dt_annotation = self.axes.annotate("0", (0,0), xytext=(10,10),
                                                           xycoords="axes pixels",textcoords="offset pixels")
+
         self.altlegend = AltLegendView(self)
         self.tight_layout()
+
+    def onpick(self, event):
+
+        label = event.artist.get_label()
+        if label and self._legend:
+            self._legend
+            print(label)
+            print(event.artist.get_color())
+            print(event.artist.get_linestyle())
+            StyleDialog(self, event.artist, self.axes)
+            self.legend()
+        self.draw()
 
     def legend(self):
         MPL_LOGGER.setLevel(logging.ERROR)
         with contextlib.redirect_stdout(io.StringIO()) as f:
             legend = self.axes.legend(**LEGEND_PARAMS)
+            self._legend = legend
 
         MPL_LOGGER.setLevel(logging.WARNING)
-        # if not legend.legendHandles:
-        #     legend.remove()
+        if legend.legendHandles:
+            for obj in legend.legendHandles:
+                obj.set_picker(5)
+        else:
+            legend.remove()
+            self._legend = None
+
 
     def tight_layout(self):
         with warnings.catch_warnings():

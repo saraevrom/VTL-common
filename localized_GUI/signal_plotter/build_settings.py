@@ -8,7 +8,7 @@ def build_menu(menu: SettingMenu):
     menu.add_setting(CheckboxValue, "lightcurve_mean", get_locale("app.popup_plot.lightcurve_mean"), False, sensitive=True)
     menu.add_setting(CheckboxValue, "show_pixels", get_locale("app.popup_plot.show_pixels"), True, sensitive=True)
 
-    menu.add_setting(DoubleValue, "threshold", get_locale("app.popup_plot.threshold"), 3.5)
     menu.add_setting(EntryValue, "title", get_locale("app.popup_plot.title"),"")
     menu.add_setting(EntryValue, "x_label", get_locale("app.popup_plot.x_label"),"")
     menu.add_setting(EntryValue, "y_label", get_locale("app.popup_plot.y_label"),"")
+    menu.add_setting(DoubleValue, "threshold", get_locale("app.popup_plot.threshold"), 3.5)
