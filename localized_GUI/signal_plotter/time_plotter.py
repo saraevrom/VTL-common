@@ -1,5 +1,6 @@
 import numpy.random as rng
 import numpy as np
+from .binsearch import binsearch_tgt
 from ..plotter import Plotter
 
 from ...utilities import set_vlines_position, set_vlines_position_ylims
@@ -117,6 +118,7 @@ class MainPlotter(Plotter):
         self.__right_hold = False
         self.__start_x = 0
         self.__end_x = 0
+        self.axis_x_data = x_plot
         lowx = np.min(x_plot)
         lowy = np.min(display_data)
         highy =np.max(display_data)
@@ -211,8 +213,8 @@ class MainPlotter(Plotter):
                                                dy=0)
 
             dx = abs(self.__start_x - self.__end_x)
-            i1 = int(self.__start_x)
-            i2 = int(self.__end_x)
+            i1 = binsearch_tgt(self.axis_x_data, self.__start_x)
+            i2 = binsearch_tgt(self.axis_x_data, self.__end_x)
             if i1 > i2:
                 i1, i2 = i2 , i1
             middle_x = (self.__start_x + self.__end_x)/2
