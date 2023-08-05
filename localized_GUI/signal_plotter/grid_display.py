@@ -68,27 +68,22 @@ def get_color(i,j):
                    v_shift=gray_shift*0.5,
                    s_shift=gray_shift*0.3)
 
-
-def add_subplot_axes(fig,ax,rect,axisbg='w'):
-    x,y,w,h = rect
-    # box = ax.get_position()
-    # width = box.width
-    # height = box.height
-    inax_position = ax.transAxes.transform(rect[0:2])
+RECT = [0.01, 0.75, 0.2, 0.2]
+def get_position(fig, axes):
+    x, y, w, h = RECT
+    inax_position = axes.transAxes.transform(RECT[0:2])
     transFigure = fig.transFigure.inverted()
     infig_position = transFigure.transform(inax_position)
     x = infig_position[0]
     y = infig_position[1]
+    return x,y,w,h
+
+def add_subplot_axes(fig,ax,axisbg='w'):
+    x,y,w,h = get_position(fig, ax)
     # width *= rect[2]
     # height *= rect[3]  # <= Typo was here
     #subax = fig.add_axes([x,y,width,height],facecolor=facecolor)  # matplotlib 2.0+
     subax = fig.add_axes([x,y,w,h])
-    x_labelsize = subax.get_xticklabels()[0].get_size()
-    y_labelsize = subax.get_yticklabels()[0].get_size()
-    x_labelsize *= rect[2]**0.5
-    y_labelsize *= rect[3]**0.5
-    subax.xaxis.set_tick_params(labelsize=x_labelsize)
-    subax.yaxis.set_tick_params(labelsize=y_labelsize)
     return subax
 
 class AltLegendView(GridView):
@@ -104,13 +99,8 @@ class AltLegendView(GridView):
         self.subaxes.get_yaxis().set_visible(False)
 
     def update_view(self):
-        rect = [0.01, 0.75, 0.2, 0.2]
-        x, y, w, h = rect
-        inax_position = self.parent_axes.transAxes.transform(rect[0:2])
-        transFigure = self.parent_figure.transFigure.inverted()
-        infig_position = transFigure.transform(inax_position)
-        x = infig_position[0]
-        y = infig_position[1]
+        x,y,w,h = get_position(self.parent_figure, self.parent_axes)
+
         self.subaxes.set_position([x,y,w,h])
 
     def set_alive(self, alive_matrix):
