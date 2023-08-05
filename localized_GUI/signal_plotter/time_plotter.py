@@ -63,6 +63,7 @@ class MainPlotter(Plotter):
         self.accumulated.set_visible(False)
         box = self.axes.get_position()
         self.axes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        self._legend_size = None
         self.legend()
         self.draw()
         self._accumulation_mode = "Off"
@@ -93,6 +94,15 @@ class MainPlotter(Plotter):
         self.altlegend = AltLegendView(self)
         self.tight_layout()
 
+    def set_font_size(self, size):
+        self.axes.tick_params(axis='both', which='major', labelsize=size)
+        xlabel = self.axes.get_xlabel()
+        self.axes.set_xlabel(xlabel, fontsize=size)
+        ylabel = self.axes.get_ylabel()
+        self.axes.set_ylabel(ylabel, fontsize=size)
+        self._legend_size = size
+        self.legend()
+
     def onpick(self, event):
 
         label = event.artist.get_label()
@@ -107,7 +117,10 @@ class MainPlotter(Plotter):
 
     def legend(self):
         MPL_LOGGER.setLevel(logging.ERROR)
-        legend = self.axes.legend(**LEGEND_PARAMS)
+        if self._legend_size is None:
+            legend = self.axes.legend(**LEGEND_PARAMS)
+        else:
+            legend = self.axes.legend(prop={'size': self._legend_size}, **LEGEND_PARAMS)
         self._legend = legend
 
 

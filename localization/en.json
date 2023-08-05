@@ -39,6 +39,9 @@
   "app.popup_plot.title": "Plot title",
   "app.popup_plot.x_label": "X axis label",
   "app.popup_plot.y_label": "Y axis label",
+  "app.popup_plot.tick_label_size": "Tick label size",
+  "app.popup_plot.save": "Save settings",
+  "app.popup_plot.load": "Load settings",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",

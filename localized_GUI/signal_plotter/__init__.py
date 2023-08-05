@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter.simpledialog import askinteger
 from ..plotter import GridPlotter
@@ -5,9 +6,13 @@ import numpy as np
 from ...common_GUI.settings_frame import SettingMenu
 from .build_settings import build_menu
 from ...localization import get_locale
+from ...workspace_manager import Workspace
+from ...common_GUI.button_panel import ButtonPanel
 
 from .time_plotter import MainPlotter
 
+
+PLOT_WORKSPACE = Workspace("plot_settings")
 
 class ChoosablePlotter(tk.Toplevel):
     def __init__(self, master, x_plot, display_data):
@@ -35,13 +40,6 @@ class ChoosablePlotter(tk.Toplevel):
         build_menu(self.settings_menu)
         self.settings_dict = dict()
 
-        quickactive_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.detect_active"),
-                                    command=self.on_active_select)
-
-        xlim_btn = tk.Button(auxpanel, text=get_locale("app.popup_plot.xlim"),
-                                    command=self.on_xlim)
-
-
         scale_panel = tk.Frame(auxpanel)
 
         self.xscale_var = tk.IntVar(self)
@@ -59,9 +57,15 @@ class ChoosablePlotter(tk.Toplevel):
         tk.Radiobutton(scale_panel, text="log", variable=self.yscale_var, value=1).grid(row=1, column=2)
         self.yscale_var.trace("w", self.on_yscale_change)
 
-
-        quickactive_btn.pack(side="bottom", fill="x")
-        xlim_btn.pack(side="bottom", fill="x")
+        button_panel = ButtonPanel(auxpanel)
+        button_panel.add_button(get_locale("app.popup_plot.save"), command=self.on_save_settings, row=0)
+        button_panel.add_button(get_locale("app.popup_plot.load"), command=self.on_load_settings, row=0)
+        button_panel.add_button(get_locale("app.popup_plot.detect_active"), command=self.on_active_select, row=1)
+        button_panel.add_button(get_locale("app.popup_plot.xlim"), command=self.on_xlim, row=2)
+        button_panel.pack(side="bottom", fill="x")
+        #
+        # quickactive_btn.pack(side="bottom", fill="x")
+        # xlim_btn.pack(side="bottom", fill="x")
         scale_panel.pack(side="bottom",fill="x")
         self.settings_menu.pack(side="bottom",fill="x")
 
@@ -70,7 +74,28 @@ class ChoosablePlotter(tk.Toplevel):
         self.changed_size_flag = False
         self.alive = True
 
+    def on_save_settings(self):
+        filename = PLOT_WORKSPACE.asksaveasfilename(title=get_locale("app.filedialog.save_settings.title"),
+                                     filetypes=[(get_locale("app.filedialog_formats.form_json"), "*.json")],
+                                     initialdir=".",
+                                     parent=self)
+        if filename:
+            resdict = dict()
+            self.settings_menu.push_settings_dict(resdict)
+            with open(filename, "w") as fp:
+                json.dump(resdict, fp)
 
+
+    def on_load_settings(self):
+        filename = PLOT_WORKSPACE.askopenfilename(title=get_locale("app.filedialog.save_settings.title"),
+                                                filetypes=[(get_locale("app.filedialog_formats.form_json"), "*.json")],
+                                                initialdir=".",
+                                                parent=self)
+        if filename:
+            with open(filename, "r") as fp:
+                srcdict = json.load(fp)
+            self.settings_menu.pull_settings_dict(srcdict)
+            self.on_settings_commit()
 
     def on_size_changed(self, event):
         self.changed_size_flag = True
@@ -108,6 +133,7 @@ class ChoosablePlotter(tk.Toplevel):
         self.plotter.axes.set_title(self.settings_dict["title"])
         self.plotter.axes.set_xlabel(self.settings_dict["x_label"])
         self.plotter.axes.set_ylabel(self.settings_dict["y_label"])
+        self.plotter.set_font_size(self.settings_dict["tick_label_size"])
         self.plotter.tight_layout()
         self.plotter.draw()
 

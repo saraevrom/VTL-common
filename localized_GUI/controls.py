@@ -31,7 +31,7 @@ class TkFormControlPanel(tk.Frame):
                 json.dump(jsd, fp, indent=4)
 
     def on_load(self):
-        filename = self.file_asker.askopenfilename(title=get_locale("app.filedialog.save_settings.title"),
+        filename = self.file_asker.askopenfilename(title=get_locale("app.filedialog.open_settings.title"),
                                                 filetypes=[(get_locale("app.filedialog_formats.form_json"), "*.json")],
                                                 initialdir=".",
                                                 parent=self)
