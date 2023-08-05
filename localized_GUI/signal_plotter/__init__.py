@@ -68,6 +68,12 @@ class ChoosablePlotter(tk.Toplevel):
         self.settings_menu.push_settings_dict(self.settings_dict)
         self.bind("<Configure>", self.on_size_changed)
         self.changed_size_flag = False
+        self.alive = True
+        self.protocol("WM_DELETE_WINDOW", self.closed)
+
+    def closed(self):
+        self.alive = False
+        self.destroy()
 
 
     def on_size_changed(self, event):
@@ -168,11 +174,18 @@ class ChoosablePlotter(tk.Toplevel):
 
 
 class PopupPlotable(tk.Misc):
-    def __init__(self, grid_plotter:GridPlotter):
+    def __init__(self, grid_plotter:GridPlotter, enable_invalidate=False, max_plots=1):
         self._active_gridplotter = grid_plotter
         self._plotter_window = None
         self._active_gridplotter.on_right_click_callback = self.on_right_click_callback
         self._active_gridplotter.on_right_click_callback_outofbounds = self.on_right_click_callback_oob
+        self._plot_valid = False
+        self._plot_invalidating_enabled = enable_invalidate
+        self._max_plots = max_plots
+        self._plots_queue = []
+
+    def invalidate_popup_plot(self):
+        self._plot_valid = False
 
     def get_plot_data(self):
         raise NotImplementedError("Unable to obtain plot data")
@@ -193,12 +206,23 @@ class PopupPlotable(tk.Misc):
             self._plotter_window.on_right_click_callback_oob()
 
     def ensure_plotter(self):
-        if self._plotter_window is None:
+        if (self._plotter_window is None) or (not self._plot_valid):
             self.create_plotter()
+
         return self._plotter_window is not None
 
     def _on_popup_close(self):
         self._plotter_window = None
+
+    def set_max_windows(self, newmax):
+        self._max_plots = newmax
+        self.decimate_plot_windows()
+
+    def decimate_plot_windows(self):
+        while len(self._plots_queue)>self._max_plots:
+            win = self._plots_queue.pop(0)
+            if win.alive:
+                win.destroy()
 
     def create_plotter(self):
         draw_data = self.get_plot_data()
@@ -207,3 +231,7 @@ class PopupPlotable(tk.Misc):
             self._plotter_window = ChoosablePlotter(self, x_data, display_data)
             self.postprocess_plot(self._plotter_window.get_axes())
             self._plotter_window.connect_close(self._on_popup_close)
+            self._plots_queue.append(self._plotter_window)
+            self.decimate_plot_windows()
+            if self._plot_invalidating_enabled:
+                self._plot_valid = True
