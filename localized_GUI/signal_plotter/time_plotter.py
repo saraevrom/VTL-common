@@ -107,13 +107,13 @@ class MainPlotter(Plotter):
 
     def legend(self):
         MPL_LOGGER.setLevel(logging.ERROR)
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            legend = self.axes.legend(**LEGEND_PARAMS)
-            self._legend = legend
+        legend = self.axes.legend(**LEGEND_PARAMS)
+        self._legend = legend
+
 
         MPL_LOGGER.setLevel(logging.WARNING)
-        if legend.legendHandles:
-            for obj in legend.legendHandles:
+        if legend.legend_handles:
+            for obj in legend.legend_handles:
                 obj.set_picker(5)
         else:
             legend.remove()

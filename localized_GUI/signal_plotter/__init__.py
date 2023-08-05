@@ -190,6 +190,9 @@ class PopupPlotable(tk.Misc):
     def postprocess_plot(self, axes):
         pass
 
+    def postprocess_auxgrid(self, axes):
+        pass
+
     def on_left_click(self, i, j):
         if self.ensure_plotter():
             self._plotter_window.on_lmb(i, j)
@@ -237,6 +240,8 @@ class PopupPlotable(tk.Misc):
             x_data, display_data = draw_data
             self._plotter_window = ChoosablePlotter(self, x_data, display_data)
             self.postprocess_plot(self._plotter_window.get_axes())
+            self.postprocess_auxgrid(self._plotter_window.plotter.altlegend.subaxes)
+            self._plotter_window.plotter.legend()
             self._plotter_window.connect_close(self._on_popup_close)
             self._plots_queue.append(self._plotter_window)
             self.decimate_plot_windows()
