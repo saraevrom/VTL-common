@@ -69,11 +69,7 @@ class ChoosablePlotter(tk.Toplevel):
         self.bind("<Configure>", self.on_size_changed)
         self.changed_size_flag = False
         self.alive = True
-        self.protocol("WM_DELETE_WINDOW", self.closed)
 
-    def closed(self):
-        self.alive = False
-        self.destroy()
 
 
     def on_size_changed(self, event):
@@ -165,6 +161,7 @@ class ChoosablePlotter(tk.Toplevel):
     def on_closing(self):
         if self._close_callback_cp is not None:
             self._close_callback_cp()
+        self.alive = False
         self.destroy()
 
     def on_xlim(self):
@@ -206,6 +203,9 @@ class PopupPlotable(tk.Misc):
             self._plotter_window.on_right_click_callback_oob()
 
     def ensure_plotter(self):
+        self.decimate_plot_windows()
+        if not self._plots_queue:
+            self.invalidate_popup_plot()
         if (self._plotter_window is None) or (not self._plot_valid):
             self.create_plotter()
 
@@ -213,6 +213,7 @@ class PopupPlotable(tk.Misc):
 
     def _on_popup_close(self):
         self._plotter_window = None
+        self.decimate_plot_windows()
 
     def set_max_windows(self, newmax):
         self._max_plots = newmax
@@ -223,6 +224,12 @@ class PopupPlotable(tk.Misc):
             win = self._plots_queue.pop(0)
             if win.alive:
                 win.destroy()
+        i = 0
+        while i<len(self._plots_queue):
+            if self._plots_queue[i].alive:
+                i += 1
+            else:
+                self._plots_queue.pop(i)
 
     def create_plotter(self):
         draw_data = self.get_plot_data()
