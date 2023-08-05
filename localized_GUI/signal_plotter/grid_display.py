@@ -1,7 +1,37 @@
 import numpy as np
 import numba as nb
-from ...parameters import HALF_PIXELS
+from ...parameters import HALF_PIXELS, HALF_GAP_SIZE, PIXEL_SIZE
 from ..plotter import GridView, Plotter
+
+
+SPAN = HALF_GAP_SIZE + HALF_PIXELS*PIXEL_SIZE
+
+
+def x0_from_pmt(alive_matrix):
+    low = HALF_GAP_SIZE
+    high = -HALF_GAP_SIZE
+    if alive_matrix[:8,:].any():
+        low = -SPAN
+    if alive_matrix[8:,:].any():
+        high = SPAN
+    if high<low:
+        low = -SPAN
+        high = SPAN
+    return low, high
+
+
+def y0_from_pmt(alive_matrix):
+    low = HALF_GAP_SIZE
+    high = -HALF_GAP_SIZE
+    if alive_matrix[:, :8].any():
+        low = -SPAN
+    if alive_matrix[:, 8:].any():
+        high = SPAN
+    if high < low:
+        low = -SPAN
+        high = SPAN
+    return low, high
+
 
 @nb.njit()
 def hsv_to_rgb(h,s,v):
@@ -110,3 +140,7 @@ class AltLegendView(GridView):
                     self.set_pixel_color(j,i, get_color(i,j))
                 else:
                     self.set_pixel_color(j, i, "white")
+
+        self.subaxes.set_xlim(*x0_from_pmt(alive_matrix))
+        self.subaxes.set_ylim(*y0_from_pmt(alive_matrix))
+        self.subaxes.set_aspect("equal")
