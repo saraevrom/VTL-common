@@ -58,8 +58,8 @@ class ChoosablePlotter(tk.Toplevel):
         self.yscale_var.trace("w", self.on_yscale_change)
 
         button_panel = ButtonPanel(auxpanel)
-        button_panel.add_button(get_locale("app.popup_plot.save"), command=self.on_save_settings, row=0)
         button_panel.add_button(get_locale("app.popup_plot.load"), command=self.on_load_settings, row=0)
+        button_panel.add_button(get_locale("app.popup_plot.save"), command=self.on_save_settings, row=0)
         button_panel.add_button(get_locale("app.popup_plot.detect_active"), command=self.on_active_select, row=1)
         button_panel.add_button(get_locale("app.popup_plot.xlim"), command=self.on_xlim, row=2)
         button_panel.pack(side="bottom", fill="x")
@@ -249,16 +249,17 @@ class PopupPlotable(tk.Misc):
         self.decimate_plot_windows()
 
     def decimate_plot_windows(self):
-        while len(self._plots_queue)>self._max_plots:
-            win = self._plots_queue.pop(0)
-            if win.alive:
-                win.destroy()
         i = 0
         while i<len(self._plots_queue):
             if self._plots_queue[i].alive:
                 i += 1
             else:
                 self._plots_queue.pop(i)
+        # Control amount of plots
+        while len(self._plots_queue)>self._max_plots:
+            win = self._plots_queue.pop(0)
+            if win.alive:
+                win.destroy()
 
     def create_plotter(self):
         draw_data = self.get_plot_data()
