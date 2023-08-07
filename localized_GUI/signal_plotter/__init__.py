@@ -1,6 +1,10 @@
+import datetime
 import json
 import tkinter as tk
 from tkinter.simpledialog import askinteger
+
+import h5py
+
 from ..plotter import GridPlotter
 import numpy as np
 from ...common_GUI.settings_frame import SettingMenu
@@ -13,12 +17,19 @@ from .time_plotter import MainPlotter
 
 
 PLOT_WORKSPACE = Workspace("plot_settings")
+EXPORT_WORKSPACE = Workspace("export")
+
+def timestamp():
+    now = datetime.datetime.now()
+    return now.strftime("%Y%m%d%H%M%S")
 
 class ChoosablePlotter(tk.Toplevel):
     def __init__(self, master, x_plot, display_data):
         super().__init__(master)
+        self.x_data = x_plot
         self.display_data = display_data
         self._close_callback_cp = None
+        self.controller = None
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.plotter = MainPlotter(self, x_plot, display_data)
         self.plotter.pack(side="left", fill="both", expand=True)
@@ -61,7 +72,8 @@ class ChoosablePlotter(tk.Toplevel):
         button_panel.add_button(get_locale("app.popup_plot.load"), command=self.on_load_settings, row=0)
         button_panel.add_button(get_locale("app.popup_plot.save"), command=self.on_save_settings, row=0)
         button_panel.add_button(get_locale("app.popup_plot.detect_active"), command=self.on_active_select, row=1)
-        button_panel.add_button(get_locale("app.popup_plot.xlim"), command=self.on_xlim, row=2)
+        button_panel.add_button(get_locale("app.popup_plot.export"), command=self.on_export, row=2)
+        button_panel.add_button(get_locale("app.popup_plot.xlim"), command=self.on_xlim, row=3)
         button_panel.pack(side="bottom", fill="x")
         #
         # quickactive_btn.pack(side="bottom", fill="x")
@@ -73,6 +85,10 @@ class ChoosablePlotter(tk.Toplevel):
         self.bind("<Configure>", self.on_size_changed)
         self.changed_size_flag = False
         self.alive = True
+
+    def on_export(self):
+        if self.controller is not None:
+            self.controller.popup_plot_export(self)
 
     def on_save_settings(self):
         filename = PLOT_WORKSPACE.asksaveasfilename(title=get_locale("app.filedialog.save_settings.title"),
@@ -200,6 +216,7 @@ class PopupPlotable(tk.Misc):
     def __init__(self, grid_plotter:GridPlotter, enable_invalidate=False, max_plots=1):
         self._active_gridplotter = grid_plotter
         self._plotter_window = None
+        self._context_plotter = None
         self._active_gridplotter.on_right_click_callback = self.on_right_click_callback
         self._active_gridplotter.on_right_click_callback_outofbounds = self.on_right_click_callback_oob
         self._plot_valid = False
@@ -218,6 +235,22 @@ class PopupPlotable(tk.Misc):
 
     def postprocess_auxgrid(self, axes):
         pass
+
+    def postprocess_plot_export(self, h5file:h5py.File, caller_window:ChoosablePlotter):
+        pass
+
+    def popup_plot_export(self, caller_window:ChoosablePlotter):
+        x_data = caller_window.x_data
+        y_data = caller_window.display_data
+        selection_data = caller_window.selector.alive_pixels_matrix[:]
+        filename = EXPORT_WORKSPACE.asksaveasfilename(auto_formats=["h5", ], parent=caller_window,
+                                                      initialfile=f"PLOT{timestamp()}.h5")
+        if filename:
+            with h5py.File(filename, "w") as fp:
+                fp.create_dataset("x_data", data=x_data)
+                fp.create_dataset("y_data", data=y_data)
+                fp.create_dataset("selection", data=selection_data)
+                self.postprocess_plot_export(fp, caller_window)
 
     def on_left_click(self, i, j):
         if self.ensure_plotter():
@@ -261,11 +294,17 @@ class PopupPlotable(tk.Misc):
             if win.alive:
                 win.destroy()
 
+    def plot_add_attribute(self, key, obj):
+        if self._context_plotter is not None:
+            setattr(self._context_plotter, key, obj)
+
     def create_plotter(self):
         draw_data = self.get_plot_data()
         if draw_data is not None:
             x_data, display_data = draw_data
             self._plotter_window = ChoosablePlotter(self, x_data, display_data)
+            self._context_plotter = self._plotter_window
+            self._plotter_window.controller = self
             self.postprocess_plot(self._plotter_window.get_axes())
             self.postprocess_auxgrid(self._plotter_window.plotter.altlegend.subaxes)
             self._plotter_window.plotter.legend()
@@ -274,3 +313,4 @@ class PopupPlotable(tk.Misc):
             self.decimate_plot_windows()
             if self._plot_invalidating_enabled:
                 self._plot_valid = True
+            self._context_plotter = None
