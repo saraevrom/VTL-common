@@ -17,7 +17,7 @@ from .time_plotter import MainPlotter
 
 
 PLOT_WORKSPACE = Workspace("plot_settings")
-EXPORT_WORKSPACE = Workspace("export")
+EXPORT_WORKSPACE = Workspace("export_plotdata")
 
 def timestamp():
     now = datetime.datetime.now()
