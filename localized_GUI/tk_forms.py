@@ -41,7 +41,13 @@ class SaveableTkDictForm(tk.Frame):
 
         control_panel = TkFormControlPanel(self, file_asker=file_asker, save_label=save_label, load_label=load_label)
         control_panel.connect_form(self)
+        self.tkform.on_commit = self.on_form_commit
+        self.on_commit = None
         control_panel.pack(side="bottom",fill="x")
+
+    def on_form_commit(self):
+        if self.on_commit is not None:
+            self.on_commit()
 
     def __getattr__(self, item):
         return getattr(self.tkform,item)

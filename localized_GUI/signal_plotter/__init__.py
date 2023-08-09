@@ -24,8 +24,9 @@ def timestamp():
     return now.strftime("%Y%m%d%H%M%S")
 
 class ChoosablePlotter(tk.Toplevel):
-    def __init__(self, master, x_plot, display_data):
+    def __init__(self, master, x_plot, display_data, auxdata=None):
         super().__init__(master)
+        self.aux_data = auxdata
         self.x_data = x_plot
         self.display_data = display_data
         self._close_callback_cp = None
@@ -236,7 +237,7 @@ class PopupPlotable(tk.Misc):
     def postprocess_auxgrid(self, axes):
         pass
 
-    def postprocess_plot_export(self, h5file:h5py.File, caller_window:ChoosablePlotter):
+    def postprocess_plot_export(self, h5filename:str, caller_window:ChoosablePlotter):
         pass
 
     def popup_plot_export(self, caller_window:ChoosablePlotter):
@@ -250,7 +251,7 @@ class PopupPlotable(tk.Misc):
                 fp.create_dataset("x_data", data=x_data)
                 fp.create_dataset("y_data", data=y_data)
                 fp.create_dataset("selection", data=selection_data)
-                self.postprocess_plot_export(fp, caller_window)
+            self.postprocess_plot_export(filename, caller_window)
 
     def on_left_click(self, i, j):
         if self.ensure_plotter():
@@ -301,8 +302,14 @@ class PopupPlotable(tk.Misc):
     def create_plotter(self):
         draw_data = self.get_plot_data()
         if draw_data is not None:
-            x_data, display_data = draw_data
-            self._plotter_window = ChoosablePlotter(self, x_data, display_data)
+            if len(draw_data)==2:
+                x_data, display_data = draw_data
+                auxdata = None
+            elif len(draw_data)==3:
+                x_data, display_data, auxdata = draw_data
+            else:
+                raise RuntimeError
+            self._plotter_window = ChoosablePlotter(self, x_data, display_data, auxdata)
             self._context_plotter = self._plotter_window
             self._plotter_window.controller = self
             self.postprocess_plot(self._plotter_window.get_axes())
