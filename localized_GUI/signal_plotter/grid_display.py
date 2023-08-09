@@ -10,27 +10,33 @@ SPAN = HALF_GAP_SIZE + HALF_PIXELS*PIXEL_SIZE
 def x0_from_pmt(alive_matrix):
     low = HALF_GAP_SIZE
     high = -HALF_GAP_SIZE
+    fullsize=False
     if alive_matrix[:8,:].any():
         low = -SPAN
     if alive_matrix[8:,:].any():
         high = SPAN
+        fullsize = low<0
     if high<low:
+        fullsize = True
         low = -SPAN
         high = SPAN
-    return low, high
+    return low, high, fullsize
 
 
 def y0_from_pmt(alive_matrix):
     low = HALF_GAP_SIZE
     high = -HALF_GAP_SIZE
+    fullsize=False
     if alive_matrix[:, :8].any():
         low = -SPAN
     if alive_matrix[:, 8:].any():
+        fullsize = low<0
         high = SPAN
     if high < low:
+        fullsize = True
         low = -SPAN
         high = SPAN
-    return low, high
+    return low, high, fullsize
 
 
 @nb.njit()
@@ -140,7 +146,12 @@ class AltLegendView(GridView):
                     self.set_pixel_color(j,i, get_color(i,j))
                 else:
                     self.set_pixel_color(j, i, "white")
+        xmin,xmax, fs1 = x0_from_pmt(alive_matrix)
+        ymin,ymax, fs2 = y0_from_pmt(alive_matrix)
+        if fs1 or fs2:
+            xmin, xmax = -SPAN, SPAN
+            ymin, ymax = -SPAN, SPAN
 
-        self.subaxes.set_xlim(*x0_from_pmt(alive_matrix))
-        self.subaxes.set_ylim(*y0_from_pmt(alive_matrix))
+        self.subaxes.set_xlim(xmin, xmax)
+        self.subaxes.set_ylim(ymin, ymax)
         self.subaxes.set_aspect("equal")

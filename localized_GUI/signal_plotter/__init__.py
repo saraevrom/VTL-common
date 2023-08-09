@@ -269,7 +269,7 @@ class PopupPlotable(tk.Misc):
         self.decimate_plot_windows()
         if not self._plots_queue:
             self.invalidate_popup_plot()
-        if (self._plotter_window is None) or (not self._plot_valid):
+        if (self._plotter_window is None) or (not self._plot_valid and self._plot_invalidating_enabled):
             self.create_plotter()
 
         return self._plotter_window is not None
