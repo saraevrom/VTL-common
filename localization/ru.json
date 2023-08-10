@@ -39,6 +39,9 @@
   "app.popup_plot.x_label": "Подпись к оси X",
   "app.popup_plot.y_label": "Подпись к оси Y",
   "app.popup_plot.tick_label_size": "Размер шрифта делений",
+  "app.popup_plot.lightcurve_median_offset": "Выравнивание медианы кривой свечения",
+  "app.popup_plot.export": "Экспорт",
+
 
   "app.parameters.MAIN_LATITUDE": "Широта обсерватории [°]",
   "app.parameters.MAIN_LONGITUDE": "Долгота обсерватории [°]",

@@ -42,6 +42,8 @@
   "app.popup_plot.tick_label_size": "Tick label size",
   "app.popup_plot.save": "Save settings",
   "app.popup_plot.load": "Load settings",
+  "app.popup_plot.lightcurve_median_offset": "Median LC offset",
+  "app.popup_plot.export": "Export",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",

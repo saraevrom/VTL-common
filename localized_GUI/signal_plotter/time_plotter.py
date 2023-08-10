@@ -47,6 +47,8 @@ MPL_LOGGER = logging.getLogger("matplotlib")
 class MainPlotter(Plotter):
     def __init__(self, master, x_plot, display_data):
         super().__init__(master)
+        self._use_offset = False
+        self._suppress_negative = False
         self.lines = []
         for i in range(WIDTH):
             line_row = []
@@ -250,8 +252,12 @@ class MainPlotter(Plotter):
             checkmode = self._accumulation_mode
         if checkmode =="Selected":
             srcdata = self.display_data[:, self.display_matrix]
+            if self._suppress_negative:
+                srcdata = np.where(srcdata > 0, srcdata, 0.0)
             func = self.get_lightcurve_func()
             base_lc = func(srcdata, axis=1)
+            if self._use_offset:
+                base_lc = base_lc - np.median(base_lc)
             diffused = moving_average(base_lc,self.flatten_ma)
             self.accumulated.set_ydata(diffused)
 
@@ -263,12 +269,21 @@ class MainPlotter(Plotter):
         else:
             return np.sum
 
-    def switch_accumulation_mode(self, new_mode):
+    def switch_accumulation_mode(self, new_mode, use_offset=False, suppress_negative = False):
         if self._accumulation_mode != new_mode:
             self.set_accumulation_visibility(new_mode != "Off")
             if new_mode == "All":
                 func = self.get_lightcurve_func()
-                full_sum = func(self.display_data, axis=(1, 2))
+                if suppress_negative:
+                    used_data = np.where(self.display_data>0,self.display_data, 0.0)
+                else:
+                    used_data = self.display_data
+                full_sum = func(used_data, axis=(1, 2))
+                if use_offset:
+                    full_sum -= np.median(full_sum)
+                full_sum = moving_average(full_sum, self.flatten_ma)
                 self.accumulated.set_ydata(full_sum)
             self.update_accumulation_selected(new_mode)
         self._accumulation_mode = new_mode
+        self._use_offset = use_offset
+        self._suppress_negative = suppress_negative
