@@ -143,10 +143,10 @@ class MainPlotter(Plotter):
         self.draw()
 
 
-    def set_visibility(self, matrix):
+    def set_visibility(self, matrix, show_pixels=True):
         for i in range(16):
             for j in range(16):
-                self.lines[i][j].set_visible(matrix[i,j])
+                self.lines[i][j].set_visible(matrix[i,j] and show_pixels)
                 # if matrix[i,j]:
                 #     self.lines[i][j].set_label(f"[{i + 1}, {j + 1}]")
                 # else:
