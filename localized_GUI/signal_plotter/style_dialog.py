@@ -45,7 +45,7 @@ class StyleDialog(Dialog):
         self._grid_index += 1
         return var
 
-    def body(self, master: tk.Frame) -> tk.Misc | None:
+    def body(self, master: tk.Frame):
         self._colorvar = self.add_entry(master, "app.popup_plot.dialog.color", self.line_artist.get_color())
         self._stylevar = self.add_entry(master, "app.popup_plot.dialog.color", self.line_artist.get_linestyle(),
                                         LINESTYLES)
