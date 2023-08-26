@@ -139,7 +139,7 @@ class AltLegendView(GridView):
 
         self.subaxes.set_position([x,y,w,h])
 
-    def set_alive(self, alive_matrix):
+    def set_alive(self, alive_matrix, adapt=True):
         for i in range(WIDTH):
             for j in range(HEIGHT):
                 if alive_matrix[i,j]:
@@ -148,7 +148,7 @@ class AltLegendView(GridView):
                     self.set_pixel_color(j, i, "white")
         xmin,xmax, fs1 = x0_from_pmt(alive_matrix)
         ymin,ymax, fs2 = y0_from_pmt(alive_matrix)
-        if fs1 or fs2:
+        if fs1 or fs2 or not adapt:
             xmin, xmax = -SPAN, SPAN
             ymin, ymax = -SPAN, SPAN
 

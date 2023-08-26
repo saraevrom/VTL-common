@@ -143,7 +143,7 @@ class MainPlotter(Plotter):
         self.draw()
 
 
-    def set_visibility(self, matrix, show_pixels=True):
+    def set_visibility(self, matrix, show_pixels=True, adapt=True):
         for i in range(16):
             for j in range(16):
                 self.lines[i][j].set_visible(matrix[i,j] and show_pixels)
@@ -151,7 +151,7 @@ class MainPlotter(Plotter):
                 #     self.lines[i][j].set_label(f"[{i + 1}, {j + 1}]")
                 # else:
                 #     self.lines[i][j].set_label("_hidden")
-        self.altlegend.set_alive(matrix)
+        self.altlegend.set_alive(matrix, adapt=adapt)
         self.legend()
         self.tight_layout()
         self.display_matrix = matrix

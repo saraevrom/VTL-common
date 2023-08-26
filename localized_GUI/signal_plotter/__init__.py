@@ -168,10 +168,11 @@ class ChoosablePlotter(tk.Toplevel):
         self.on_lmb(-1, -1)
 
     def on_lmb(self,i,j):
+        adapt = not self.settings_dict["display_full_matrix"]
         if self.settings_dict["show_pixels"]:
-            self.plotter.set_visibility(self.selector.alive_pixels_matrix, True)
+            self.plotter.set_visibility(self.selector.alive_pixels_matrix, True, adapt=adapt)
         else:
-            self.plotter.set_visibility(self.selector.alive_pixels_matrix, False)
+            self.plotter.set_visibility(self.selector.alive_pixels_matrix, False, adapt=adapt)
             self.plotter.display_matrix = self.selector.alive_pixels_matrix # To accumulate data
             self.plotter.draw()
         self.plotter.update_accumulation_selected()

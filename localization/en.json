@@ -44,6 +44,7 @@
   "app.popup_plot.load": "Load settings",
   "app.popup_plot.lightcurve_median_offset": "Median LC offset",
   "app.popup_plot.export": "Export",
+  "app.popup_plot.display_full_matrix": "Display full pixel map",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",

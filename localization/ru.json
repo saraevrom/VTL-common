@@ -41,6 +41,7 @@
   "app.popup_plot.tick_label_size": "Размер шрифта делений",
   "app.popup_plot.lightcurve_median_offset": "Выравнивание медианы кривой свечения",
   "app.popup_plot.export": "Экспорт",
+  "app.popup_plot.display_full_matrix": "Отображать полностью карту пикселей",
 
 
   "app.parameters.MAIN_LATITUDE": "Широта обсерватории [°]",
