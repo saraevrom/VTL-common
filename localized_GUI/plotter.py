@@ -304,6 +304,9 @@ class GridPlotter(Plotter, GridView):
         self.annotation.set_visible(False)
         self.figure.canvas.draw_idle()
 
+    def pointer_additional_text(self,x,y):
+        return ""
+
     def on_hover(self, event):
         if event.xdata and event.ydata:
             i = find_index(event.xdata)
@@ -312,7 +315,10 @@ class GridPlotter(Plotter, GridView):
                 v = self.buffer_matrix[i, j]
                 self.annotation.xy = (event.xdata, event.ydata)
                 self.annotation.set_visible(True)
-                self.annotation.set_text(f"[{i+1}, {j+1}]\n({round(v,2)})")
+                add_text = self.pointer_additional_text(event.xdata, event.ydata)
+                if add_text:
+                    add_text = "\n" + add_text
+                self.annotation.set_text(f"[{i+1}, {j+1}]\n({round(v,2)})"+add_text)
                 #print(f"HOVERING over {i},{j}")
 
                 if event.button == 1 and self._last_alive is not None:
