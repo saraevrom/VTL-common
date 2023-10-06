@@ -185,7 +185,9 @@ class StringEntry(ConfigEntry):
         super().__init__(name,master,conf,color_index)
         tk.Label(self.content_frame,text=conf["display_name"]).pack(side="left",fill="both")
         self.textvar = tk.StringVar(master)
-        EntryWithEnterKey(self.frame,textvar=self.textvar).pack(side="left",fill="both")
+        entry = EntryWithEnterKey(self.frame,textvar=self.textvar)
+        entry.pack(side="left",fill="both")
+        entry.on_commit = self.trigger_change
 
     def _set_value(self, newval, force=False):
         self.textvar.set(newval)
