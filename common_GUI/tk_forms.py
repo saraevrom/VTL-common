@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #-*-coding:utf8-*-
-
+import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -675,10 +675,13 @@ class AlternatingEntry(ConfigEntry):
 
     def _set_value(self, newval, force=False):
         sel = newval["selection_type"]
-        self.combobox.set(sel)
-        self.select_field(self.valnames.index(sel))
-        if "value" in newval.keys() and (self.subfield is not None):
-            self.subfield.set_value(newval["value"], force=force)
+        if sel in self.valnames:
+            self.combobox.set(sel)
+            self.select_field(self.valnames.index(sel))
+            if "value" in newval.keys() and (self.subfield is not None):
+                self.subfield.set_value(newval["value"], force=force)
+        else:
+            print(f"Selection type {sel} is not valid. Changing this value is omitted.",file=sys.stderr)
 
     def _get_value(self):
         stype = self.combobox.get()
