@@ -223,7 +223,8 @@ class GridPlotter(Plotter, GridView):
             self.update_norm(low_auto, high_auto)
 
             if self.colorbar is None:
-                self.colorbar = self.figure.colorbar(plt.cm.ScalarMappable(norm=self.norm, cmap=PLOT_COLORMAP))
+                self.colorbar = self.figure.colorbar(plt.cm.ScalarMappable(norm=self.norm, cmap=PLOT_COLORMAP),
+                                                     ax=self.axes)
         # print("Normalized:", time.time()-start_time)
         if self.norm is not None:
             for j in range(2*HALF_PIXELS):
