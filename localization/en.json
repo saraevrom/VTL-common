@@ -62,6 +62,6 @@
   "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Floating point format for grid plotter scale",
   "app.parameters.DATETIME_FORMAT": "Datetime format",
   "app.parameters": "Parameters",
-  "app.menu.settings": "Settings",
+  "app.menu.settings": "Settings"
 
 }
