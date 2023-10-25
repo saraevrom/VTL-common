@@ -674,14 +674,17 @@ class AlternatingEntry(ConfigEntry):
             self.subframe.pack_forget()
 
     def _set_value(self, newval, force=False):
-        sel = newval["selection_type"]
-        if sel in self.valnames:
-            self.combobox.set(sel)
-            self.select_field(self.valnames.index(sel))
-            if "value" in newval.keys() and (self.subfield is not None):
-                self.subfield.set_value(newval["value"], force=force)
+        if "selection_type" in newval.keys():
+            sel = newval["selection_type"]
+            if sel in self.valnames:
+                self.combobox.set(sel)
+                self.select_field(self.valnames.index(sel))
+                if "value" in newval.keys() and (self.subfield is not None):
+                    self.subfield.set_value(newval["value"], force=force)
+            else:
+                print(f"Selection type {sel} is not valid. Changing this value is omitted.",file=sys.stderr)
         else:
-            print(f"Selection type {sel} is not valid. Changing this value is omitted.",file=sys.stderr)
+            print("No selection_type key in data. Skipping.")
 
     def _get_value(self):
         stype = self.combobox.get()
