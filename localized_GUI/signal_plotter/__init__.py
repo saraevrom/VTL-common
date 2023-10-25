@@ -50,6 +50,8 @@ class ChoosablePlotter(tk.Toplevel):
         self.settings_menu = SettingMenu(auxpanel, autocommit=True)
         self.settings_menu.commit_action = self.on_settings_commit
         build_menu(self.settings_menu)
+        self.settings_menu.add_tracer("use_peak", self.on_change_peak_cutter_flag)
+        self.settings_menu.add_tracer("peak_width", self.on_change_peak_cutter_flag)
         self.settings_dict = dict()
 
         scale_panel = tk.Frame(auxpanel)
@@ -86,6 +88,16 @@ class ChoosablePlotter(tk.Toplevel):
         self.bind("<Configure>", self.on_size_changed)
         self.changed_size_flag = False
         self.alive = True
+
+    def on_change_peak_cutter_flag(self):
+        enabled = self.settings_dict["use_peak"]
+        width = self.settings_dict["peak_width"]
+        print("PEAK CUTTER changed",enabled,width)
+        if enabled:
+            self.plotter.modulate_data(width)
+        else:
+            self.plotter.disable_modulation()
+
 
     def on_export(self):
         if self.controller is not None:

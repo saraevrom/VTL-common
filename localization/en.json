@@ -45,6 +45,8 @@
   "app.popup_plot.lightcurve_median_offset": "Median LC offset",
   "app.popup_plot.export": "Export",
   "app.popup_plot.display_full_matrix": "Display full pixel map",
+  "app.popup_plot.use_peak": "Limit signal to peak",
+  "app.popup_plot.peak_width": "Width of peak to use",
 
   "app.parameters.MAIN_LATITUDE": "Observatory latitude [°]",
   "app.parameters.MAIN_LONGITUDE": "Observatory longitude [°]",
@@ -60,5 +62,6 @@
   "app.parameters.SCALE_FLOATING_POINT_FORMAT": "Floating point format for grid plotter scale",
   "app.parameters.DATETIME_FORMAT": "Datetime format",
   "app.parameters": "Parameters",
-  "app.menu.settings": "Settings"
+  "app.menu.settings": "Settings",
+
 }

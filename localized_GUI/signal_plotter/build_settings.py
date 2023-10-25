@@ -2,6 +2,10 @@ from ...common_GUI.settings_frame import SettingMenu, DoubleValue, ComboboxValue
 from ...localization import get_locale
 
 def build_menu(menu: SettingMenu):
+    menu.add_setting(CheckboxValue, "use_peak", get_locale("app.popup_plot.use_peak"), False,
+                     sensitive=True)
+    menu.add_setting(IntValue, "peak_width", get_locale("app.popup_plot.peak_width"), 10)
+
     menu.add_setting(ComboboxValue, "lightcurve", get_locale("app.popup_plot.lightcurve"),"Off",
                      options=["Off", "All", "Selected"], sensitive=True)
     menu.add_setting(IntValue, "lightcurve_ma", get_locale("app.popup_plot.lightcurve_ma"), 1)

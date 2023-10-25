@@ -36,6 +36,17 @@ def moving_average(src, win):
         res[i] = np.mean(src[start:end])
     return res
 
+@nb.njit()
+def peak_filter(src,peaks,window):
+    dst = src.copy()
+    for k in range(dst.shape[0]):
+        for i in range(dst.shape[1]):
+            for j in range(dst.shape[2]):
+                if not (peaks[i,j]<=k+window//2<=peaks[i,j]+window):
+                    dst[k,i,j] = 0.0
+    return dst
+
+
 WIDTH = 2*HALF_PIXELS
 HEIGHT = 2*HALF_PIXELS
 
@@ -57,7 +68,11 @@ class MainPlotter(Plotter):
                 line.set_visible(False)
                 line_row.append(line)
             self.lines.append(line_row)
-        self.display_data = display_data
+        self._display_data = display_data
+        self._alt_display_data = None
+        self._modulated_display_data = None
+        self._modulation_window = 10
+        self._uses_modulation = False
         self.use_mean = False
         self.flatten_ma = 1
         self.accumulated, = self.axes.plot(x_plot, np.zeros(shape=display_data.shape[0]), "-",
@@ -95,6 +110,34 @@ class MainPlotter(Plotter):
 
         self.altlegend = AltLegendView(self)
         self.tight_layout()
+
+    @property
+    def display_data(self):
+        if self._uses_modulation:
+            if self._modulated_display_data is None:
+                peaks = np.argmax(self._display_data,axis=0)
+                self._modulated_display_data = peak_filter(self._display_data, peaks, self._modulation_window)
+            return self._modulated_display_data
+        else:
+            return self._display_data
+
+    def modulate_data(self, window):
+        self._uses_modulation = True
+        if window != self._modulation_window:
+            self._modulation_window = window
+            self._modulated_display_data = None
+        self.update_display()
+
+    def disable_modulation(self):
+        if self._uses_modulation:
+            self._uses_modulation = False
+            self.update_display()
+
+    def update_display(self):
+        for i in range(WIDTH):
+            for j in range(HEIGHT):
+                self.lines[i][j].set_ydata(self.display_data[:,i,j])
+        self.draw()
 
     def set_font_size(self, size):
         self.axes.tick_params(axis='both', which='major', labelsize=size)
